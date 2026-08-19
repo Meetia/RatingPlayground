@@ -82,6 +82,7 @@
   .sliderval { font-size: 40px; font-weight: 700; text-align: center; margin: 6px 0 2px; }
   .sliderval small { font-size: 18px; color: var(--muted); font-weight: 600; }
   .sliderends { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+  .feel { text-align: center; font-size: 17px; font-weight: 600; min-height: 24px; margin: 2px 0 8px; transition: color .1s; }
 
   /* comparison */
   .versus { text-align: center; }
@@ -126,7 +127,7 @@
 <body>
 <div class="wrap">
   <div id="app" class="card"></div>
-  <div class="foot">Rating Playground · a throwaway toy for feeling different rating systems · no data leaves this page</div>
+  <div class="foot">Rating Playground · a throwaway toy for feeling different rating systems</div>
 </div>
 
 <script>
@@ -145,8 +146,28 @@ const CONFIG = {
     { name: "your usual go-to",   score: 8.0 },
     { name: "the best you've had",score: 9.3 },
   ],
+  // Feeling labels for the "slider with words" system. The rounded value picks a
+  // word and the slider colour shifts red→amber→green. In the app this could be
+  // per-list customizable (index 0 = worst, last = best).
+  feelingLabels: [
+    "never again",                              // 0
+    "couldn't finish it",                       // 1
+    "pretty bad",                               // 2
+    "meh, disappointing",                       // 3
+    "fine, wouldn't seek it out",               // 4
+    "eh — I'd eat it if it was in front of me", // 5
+    "solid, no complaints",                     // 6
+    "really good, would get again",             // 7
+    "excellent, a go-to",                       // 8
+    "I'd tell everyone to try this",            // 9
+    "best I've ever had",                       // 10
+  ],
+  // Where finished runs go. "" = local only (results stay in the tester's browser
+  // + clipboard). Paste your Apps Script Web App URL to collect everyone's runs in
+  // one Google Sheet — see apps-script.gs and the README.
+  endpoint: "",
   // Systems included this round. Order is randomized per session.
-  systems: ["stars5", "whole6", "slider", "seeded"],
+  systems: ["stars5", "whole6", "slider", "sliderfeel", "seeded"],
 };
 
 /* ============================================================
@@ -175,8 +196,9 @@ function shuffle(arr) {
 
 const SYS_META = {
   stars5:  { label: "1–5 stars",        how: "Tap a star. The familiar default." },
-  whole6:  { label: "1–6 numbers",      how: "Tap a number, 1 to 6. This is what the app ships today — no decimals, no neutral middle." },
+  whole6:  { label: "1–6 numbers",      how: "Tap a number, 1 to 6 — no decimals, no neutral middle." },
   slider:  { label: `0–${CONFIG.sliderMax} slider`, how: "Drag to any point on the line — decimals allowed." },
+  sliderfeel: { label: `0–${CONFIG.sliderMax} slider, with words`, how: "Same slider, but every spot has a feeling attached and the colour shifts as you drag." },
   seeded:  { label: "Comparison",       how: "No number up front. Just say whether it was better or worse than things you've had before, and a score falls out." },
 };
 
@@ -188,9 +210,9 @@ function renderStart() {
     <h1>Rate a food, a few ways</h1>
     <p class="sub">Think of one thing you ate recently that you have an opinion about. You'll rate that same item with a few different rating systems and see how it feels.</p>
     <label for="name">Your name <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-    <input type="text" id="name" placeholder="e.g. Meet" autocomplete="off" />
+    <input type="text" id="name" placeholder="" autocomplete="off" />
     <label for="item">What did you eat?</label>
-    <input type="text" id="item" placeholder="e.g. the almond croissant from Tatte" autocomplete="off" />
+    <input type="text" id="item" placeholder="e.g. almond croissant from Der Pioneer" autocomplete="off" />
     <button class="btn-primary" id="go" disabled>Start rating</button>
   `;
   const item = document.getElementById("item");
@@ -228,14 +250,16 @@ function renderSystem() {
   const next = document.getElementById("next");
 
   const commit = (value, display, meta) => {
+    const first = !state.results[key];
     state.results[key] = { value, display, meta: meta || null, reactions: state.results[key]?.reactions || {} };
     next.disabled = false;
-    renderReactions(key);
+    if (first) renderReactions(key);   // render the reaction chips once, not on every slider move
   };
 
   if (key === "stars5") renderStars(input, commit);
   else if (key === "whole6") renderNums(input, commit, 1, 6);
   else if (key === "slider") renderSlider(input, commit);
+  else if (key === "sliderfeel") renderSliderFeel(input, commit);
   else if (key === "seeded") renderSeeded(input, commit);
 
   next.addEventListener("click", () => {
@@ -287,6 +311,38 @@ function renderSlider(input, commit) {
   // require an intentional move: don't pre-commit until first interaction
 }
 
+function renderSliderFeel(input, commit) {
+  const max = CONFIG.sliderMax, step = CONFIG.sliderStep;
+  const labels = CONFIG.feelingLabels;
+  const mid = max / 2;
+  input.innerHTML = `
+    <div class="sliderbox">
+      <div class="sliderval" id="sv">–<small> / ${max}</small></div>
+      <div class="feel" id="feel">drag to feel it out</div>
+      <input type="range" id="rng" min="0" max="${max}" step="${step}" value="${mid}" />
+      <div class="sliderends"><span>0</span><span>${max}</span></div>
+    </div>`;
+  const rng = document.getElementById("rng");
+  const sv = document.getElementById("sv");
+  const feel = document.getElementById("feel");
+  const fmt = v => (step < 1 ? (+v).toFixed(1) : String(+v));
+  const colorFor = v => `hsl(${Math.round((v / max) * 130)} 60% 42%)`;   // 0=red → max=green
+  const labelFor = v => {
+    const i = Math.round((v / max) * (labels.length - 1));
+    return labels[Math.max(0, Math.min(labels.length - 1, i))];
+  };
+  const update = () => {
+    const v = +rng.value, c = colorFor(v), lbl = labelFor(v);
+    sv.innerHTML = `${fmt(v)}<small> / ${max}</small>`;
+    sv.style.color = c;
+    feel.textContent = "“" + lbl + "”";
+    feel.style.color = c;
+    rng.style.accentColor = c;
+    commit(v, `${fmt(v)} / ${max}`, { feeling: lbl });
+  };
+  rng.addEventListener("input", update);
+}
+
 function renderSeeded(input, commit) {
   const seeds = CONFIG.seeds.slice().sort((a, b) => a.score - b.score);
   let lo = 0, hi = seeds.length;   // binary insertion bounds
@@ -333,7 +389,7 @@ function renderSeeded(input, commit) {
   step();
 }
 
-/* three quick optional reactions after a rating is given */
+/* quick optional reactions after a rating is given — tap any that apply */
 function renderReactions(key) {
   const wrap = document.getElementById("react");
   const r = state.results[key].reactions;
@@ -341,10 +397,13 @@ function renderReactions(key) {
     ["easy", "Easy to use"],
     ["quick", "Quick"],
     ["expressive", "Let me say what I meant"],
+    ["lowload", "Low mental effort"],
+    ["decisive", "Helped me land on a number"],
+    ["accurate", "Felt accurate"],
   ];
   wrap.innerHTML = `
     <div class="reactions">
-      <div class="rtitle">Quick reaction (optional)</div>
+      <div class="rtitle">What was true of this one? (optional, tap any)</div>
       <div class="chips">
         ${chips.map(([k, lbl]) => `<button class="chip ${r[k] ? "on" : ""}" data-k="${k}">${lbl}</button>`).join("")}
       </div>
@@ -360,9 +419,11 @@ function renderEnd() {
   const rows = state.order.map(key => {
     const res = state.results[key];
     const meta = SYS_META[key];
+    const sub = res.meta?.placement ? escapeHtml(res.meta.placement)
+              : res.meta?.feeling ? "“" + escapeHtml(res.meta.feeling) + "”" : "";
     return `
       <div class="result-row">
-        <div class="result-sys">${meta.label}<small>${res.meta?.placement ? escapeHtml(res.meta.placement) : ""}</small></div>
+        <div class="result-sys">${meta.label}<small>${sub}</small></div>
         <div class="result-val">${res.display}</div>
       </div>`;
   }).join("");
@@ -377,6 +438,8 @@ function renderEnd() {
     </div>
     <label for="note">Any thoughts? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
     <input type="text" id="note" placeholder="what worked, what annoyed you…" />
+    <label for="better">A better way to be asked? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <input type="text" id="better" placeholder="a system or tweak you'd rather use…" />
     <div class="actions">
       <button class="btn-sec" id="save">Save + copy result</button>
       <button class="btn-sec" id="again">Rate another</button>
@@ -396,6 +459,7 @@ function renderEnd() {
    ============================================================ */
 function saveResult() {
   state.note = document.getElementById("note").value.trim();
+  const better = document.getElementById("better").value.trim();
   const record = {
     ts: new Date().toISOString(),
     name: state.name || null,
@@ -403,11 +467,13 @@ function saveResult() {
     order: state.order,
     favorite: state.favorite,
     note: state.note || null,
+    betterSystem: better || null,
     ratings: state.order.map(key => ({
       system: key,
       value: state.results[key].value,
       display: state.results[key].display,
       placement: state.results[key].meta?.placement || null,
+      feeling: state.results[key].meta?.feeling || null,
       reactions: state.results[key].reactions,
     })),
   };
@@ -417,18 +483,18 @@ function saveResult() {
     all.push(record);
     localStorage.setItem("ratingPlayground", JSON.stringify(all));
   } catch (e) { /* private mode etc. — ignore */ }
-  // copy to clipboard so it's easy to paste back to Meet
-  const text = JSON.stringify(record, null, 2);
-  navigator.clipboard?.writeText(text).catch(() => {});
+  // copy to clipboard so it's easy to paste back
+  navigator.clipboard?.writeText(JSON.stringify(record, null, 2)).catch(() => {});
+  // if an endpoint is configured, also send it to the shared Google Sheet
+  let sent = false;
+  if (CONFIG.endpoint) {
+    // text/plain body avoids a CORS preflight against the Apps Script Web App
+    fetch(CONFIG.endpoint, { method: "POST", body: JSON.stringify(record) }).catch(() => {});
+    sent = true;
+  }
   const btn = document.getElementById("save");
-  btn.textContent = "Copied to clipboard ✓";
+  btn.textContent = sent ? "Sent + copied ✓" : "Copied to clipboard ✓";
   setTimeout(() => (btn.textContent = "Save + copy result"), 1800);
-
-  /* --- OPTIONAL: send to a Google Sheet via Apps Script Web App ---
-     Uncomment and set ENDPOINT to your deployed script URL.
-  const ENDPOINT = "https://script.google.com/macros/s/XXXX/exec";
-  fetch(ENDPOINT, { method: "POST", body: JSON.stringify(record) }); // text/plain avoids CORS preflight
-  */
 }
 
 function escapeHtml(s) {
