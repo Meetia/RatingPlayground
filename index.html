@@ -120,6 +120,8 @@
   .actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
   .actions button { flex: 1; min-width: 120px; }
   .btn-sec { background: #f1f1ee; color: var(--ink); padding: 12px; font-weight: 600; }
+  .btn-submit { background: #4fa47b; color: #fff; padding: 12px; font-weight: 700; }
+  .btn-submit:hover { background: #45996f; }
   .hidden { display: none; }
   .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; }
 </style>
@@ -165,7 +167,7 @@ const CONFIG = {
   // Where finished runs go. "" = local only (results stay in the tester's browser
   // + clipboard). Paste your Apps Script Web App URL to collect everyone's runs in
   // one Google Sheet — see apps-script.gs and the README.
-  endpoint: "https://script.google.com/macros/s/AKfycbywTECAW3PHN3QoaJS08884YmFYmzie61q2t3puQ4EkyUupbSYnQ51Bt7Zmb1WQhnnuBA/exec",
+  endpoint: "",
   // Systems included this round. Order is randomized per session.
   systems: ["stars5", "whole6", "slider", "sliderfeel", "seeded"],
 };
@@ -399,7 +401,6 @@ function renderReactions(key) {
     ["expressive", "Let me say what I meant"],
     ["lowload", "Low mental effort"],
     ["decisive", "Helped me land on a number"],
-    ["accurate", "Felt accurate"],
   ];
   wrap.innerHTML = `
     <div class="reactions">
@@ -441,8 +442,8 @@ function renderEnd() {
     <label for="better">A better way to be asked? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
     <input type="text" id="better" placeholder="a system or tweak you'd rather use…" />
     <div class="actions">
-      <button class="btn-sec" id="save">Save + copy result</button>
       <button class="btn-sec" id="again">Rate another</button>
+      <button class="btn-submit" id="save">Submit</button>
     </div>
   `;
   document.querySelectorAll("#fav .chip").forEach(b => b.addEventListener("click", () => {
@@ -493,8 +494,8 @@ function saveResult() {
     sent = true;
   }
   const btn = document.getElementById("save");
-  btn.textContent = sent ? "Sent + copied ✓" : "Copied to clipboard ✓";
-  setTimeout(() => (btn.textContent = "Save + copy result"), 1800);
+  btn.textContent = sent ? "Submitted ✓" : "Copied ✓";
+  setTimeout(() => (btn.textContent = "Submit"), 1800);
 }
 
 function escapeHtml(s) {
