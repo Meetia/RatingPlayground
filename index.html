@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rating Playground</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --surface: #ffffff;
+    --bg: #f7f7f5;
+    --accent: #c2703d;      /* warm amber, echoing the app's croissant tint */
+    --accent-soft: #f3e4d7;
+    --good: #2f7d4f;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 24px 20px 64px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 0 0 2px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 16px 0 6px; }
+  input[type=text] {
+    width: 100%; padding: 11px 13px; font-size: 16px;
+    border: 1px solid var(--line); border-radius: 10px; background: #fff;
+  }
+  input[type=text]:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  button {
+    font: inherit; cursor: pointer; border: none; border-radius: 10px;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff; padding: 12px 18px; font-size: 16px;
+    font-weight: 600; width: 100%; margin-top: 22px;
+  }
+  .btn-primary:disabled { background: #d8c3b2; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; color: var(--muted); padding: 10px 12px; font-size: 14px;
+    text-decoration: underline; width: auto; display: inline-block;
+  }
+  .progress { font-size: 13px; color: var(--muted); margin-bottom: 14px; letter-spacing: .02em; }
+  .item-chip {
+    display: inline-block; background: var(--accent-soft); color: #7a4a25;
+    padding: 4px 11px; border-radius: 999px; font-size: 14px; font-weight: 600; margin-bottom: 18px;
+  }
+  .how { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+
+  /* stars */
+  .stars { display: flex; gap: 8px; }
+  .star {
+    background: #f1f1ee; border: 1px solid var(--line); border-radius: 12px;
+    width: 56px; height: 56px; font-size: 26px; color: #c9c9c4; transition: .12s;
+  }
+  .star.on { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+  /* number buttons */
+  .nums { display: flex; gap: 8px; flex-wrap: wrap; }
+  .num {
+    background: #f1f1ee; border: 1px solid var(--line); border-radius: 12px;
+    width: 52px; height: 52px; font-size: 19px; font-weight: 600; color: var(--ink); transition: .12s;
+  }
+  .num.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* slider */
+  .sliderbox { padding-top: 8px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
+  .sliderval { font-size: 40px; font-weight: 700; text-align: center; margin: 6px 0 2px; }
+  .sliderval small { font-size: 18px; color: var(--muted); font-weight: 600; }
+  .sliderends { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+
+  /* comparison */
+  .versus { text-align: center; }
+  .versus .q { font-size: 17px; margin: 6px 0 18px; }
+  .seedname { font-weight: 700; color: var(--accent); }
+  .cmp-btns { display: flex; flex-direction: column; gap: 10px; }
+  .cmp {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-size: 16px;
+    font-weight: 600; width: 100%;
+  }
+  .cmp:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .cmp.same { font-weight: 500; color: var(--muted); }
+
+  /* reactions */
+  .reactions { margin-top: 24px; border-top: 1px dashed var(--line); padding-top: 16px; }
+  .reactions .rtitle { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    background: #f1f1ee; border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 13px; font-size: 14px; color: var(--ink);
+  }
+  .chip.on { background: var(--good); color: #fff; border-color: var(--good); }
+
+  /* end card */
+  .result-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 13px 0; border-bottom: 1px solid var(--line);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-sys { font-weight: 600; }
+  .result-sys small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .result-val { font-size: 22px; font-weight: 700; }
+  .result-val small { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .fav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .actions button { flex: 1; min-width: 120px; }
+  .btn-sec { background: #f1f1ee; color: var(--ink); padding: 12px; font-weight: 600; }
+  .hidden { display: none; }
+  .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 26px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="app" class="card"></div>
+  <div class="foot">Rating Playground · a throwaway toy for feeling different rating systems · no data leaves this page</div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — everything you'd want to tweak lives here.
+   ============================================================ */
+const CONFIG = {
+  sliderMax: 10,          // slider range: 10 (decimals) or 100. Open decision.
+  sliderStep: 0.1,        // 0.1 for decimals on a 0-10 slider; use 1 for whole
+  // Seeded "your past ratings" for the comparison system. Edit freely — these are
+  // just relatable anchors so comparison can be *felt* with no real history.
+  seeds: [
+    { name: "gas-station taquito", score: 2.5 },
+    { name: "Domino's",           score: 5.0 },
+    { name: "a Costco slice",     score: 6.5 },
+    { name: "your usual go-to",   score: 8.0 },
+    { name: "the best you've had",score: 9.3 },
+  ],
+  // Systems included this round. Order is randomized per session.
+  systems: ["stars5", "whole6", "slider", "seeded"],
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let state = {
+  name: "",
+  item: "",
+  order: [],          // randomized system keys
+  idx: 0,             // which system we're on
+  results: {},        // systemKey -> { value, display, meta, reactions }
+  favorite: null,
+  note: "",
+};
+
+const el = document.getElementById("app");
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const SYS_META = {
+  stars5:  { label: "1–5 stars",        how: "Tap a star. The familiar default." },
+  whole6:  { label: "1–6 numbers",      how: "Tap a number, 1 to 6. This is what the app ships today — no decimals, no neutral middle." },
+  slider:  { label: `0–${CONFIG.sliderMax} slider`, how: "Drag to any point on the line — decimals allowed." },
+  seeded:  { label: "Comparison",       how: "No number up front. Just say whether it was better or worse than things you've had before, and a score falls out." },
+};
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+function renderStart() {
+  el.innerHTML = `
+    <h1>Rate a food, a few ways</h1>
+    <p class="sub">Think of one thing you ate recently that you have an opinion about. You'll rate that same item with a few different rating systems and see how it feels.</p>
+    <label for="name">Your name <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <input type="text" id="name" placeholder="e.g. Meet" autocomplete="off" />
+    <label for="item">What did you eat?</label>
+    <input type="text" id="item" placeholder="e.g. the almond croissant from Tatte" autocomplete="off" />
+    <button class="btn-primary" id="go" disabled>Start rating</button>
+  `;
+  const item = document.getElementById("item");
+  const go = document.getElementById("go");
+  item.addEventListener("input", () => { go.disabled = item.value.trim() === ""; });
+  go.addEventListener("click", () => {
+    state.name = document.getElementById("name").value.trim();
+    state.item = item.value.trim();
+    state.order = shuffle(CONFIG.systems);
+    state.idx = 0;
+    state.results = {};
+    renderSystem();
+  });
+  item.focus && setTimeout(() => document.getElementById("name").focus(), 30);
+}
+
+function systemHeader() {
+  const key = state.order[state.idx];
+  const meta = SYS_META[key];
+  return `
+    <div class="progress">System ${state.idx + 1} of ${state.order.length}</div>
+    <span class="item-chip">${escapeHtml(state.item)}</span>
+    <h2>${meta.label}</h2>
+    <p class="how">${meta.how}</p>
+    <div id="input"></div>
+    <div id="react"></div>
+    <button class="btn-primary" id="next" disabled>${state.idx + 1 === state.order.length ? "See results" : "Next system"}</button>
+  `;
+}
+
+function renderSystem() {
+  const key = state.order[state.idx];
+  el.innerHTML = systemHeader();
+  const input = document.getElementById("input");
+  const next = document.getElementById("next");
+
+  const commit = (value, display, meta) => {
+    state.results[key] = { value, display, meta: meta || null, reactions: state.results[key]?.reactions || {} };
+    next.disabled = false;
+    renderReactions(key);
+  };
+
+  if (key === "stars5") renderStars(input, commit);
+  else if (key === "whole6") renderNums(input, commit, 1, 6);
+  else if (key === "slider") renderSlider(input, commit);
+  else if (key === "seeded") renderSeeded(input, commit);
+
+  next.addEventListener("click", () => {
+    state.idx++;
+    if (state.idx >= state.order.length) renderEnd();
+    else renderSystem();
+  });
+}
+
+function renderStars(input, commit) {
+  input.innerHTML = `<div class="stars">${[1,2,3,4,5].map(n => `<button class="star" data-n="${n}">★</button>`).join("")}</div>`;
+  input.querySelectorAll(".star").forEach(b => b.addEventListener("click", () => {
+    const n = +b.dataset.n;
+    input.querySelectorAll(".star").forEach(s => s.classList.toggle("on", +s.dataset.n <= n));
+    commit(n, `${n} / 5`);
+  }));
+}
+
+function renderNums(input, commit, lo, hi) {
+  const arr = [];
+  for (let n = lo; n <= hi; n++) arr.push(n);
+  input.innerHTML = `<div class="nums">${arr.map(n => `<button class="num" data-n="${n}">${n}</button>`).join("")}</div>`;
+  input.querySelectorAll(".num").forEach(b => b.addEventListener("click", () => {
+    input.querySelectorAll(".num").forEach(s => s.classList.remove("on"));
+    b.classList.add("on");
+    const n = +b.dataset.n;
+    commit(n, `${n} / ${hi}`);
+  }));
+}
+
+function renderSlider(input, commit) {
+  const max = CONFIG.sliderMax, step = CONFIG.sliderStep;
+  const mid = (max / 2);
+  input.innerHTML = `
+    <div class="sliderbox">
+      <div class="sliderval" id="sv">–<small> / ${max}</small></div>
+      <input type="range" id="rng" min="0" max="${max}" step="${step}" value="${mid}" />
+      <div class="sliderends"><span>0</span><span>${max}</span></div>
+    </div>`;
+  const rng = document.getElementById("rng");
+  const sv = document.getElementById("sv");
+  const fmt = v => (step < 1 ? (+v).toFixed(1) : String(+v));
+  const update = () => {
+    const v = +rng.value;
+    sv.innerHTML = `${fmt(v)}<small> / ${max}</small>`;
+    commit(v, `${fmt(v)} / ${max}`);
+  };
+  rng.addEventListener("input", update);
+  // require an intentional move: don't pre-commit until first interaction
+}
+
+function renderSeeded(input, commit) {
+  const seeds = CONFIG.seeds.slice().sort((a, b) => a.score - b.score);
+  let lo = 0, hi = seeds.length;   // binary insertion bounds
+  const step = () => {
+    if (lo >= hi) return finish();
+    const mid = (lo + hi) >> 1;
+    const s = seeds[mid];
+    input.innerHTML = `
+      <div class="versus">
+        <div class="q">Was <b>${escapeHtml(state.item)}</b> better or worse than <span class="seedname">${escapeHtml(s.name)}</span>?</div>
+        <div class="cmp-btns">
+          <button class="cmp" data-a="better">Better</button>
+          <button class="cmp" data-a="worse">Worse</button>
+          <button class="cmp same" data-a="same">About the same</button>
+        </div>
+      </div>`;
+    input.querySelectorAll(".cmp").forEach(b => b.addEventListener("click", () => {
+      const a = b.dataset.a;
+      if (a === "same") return finish(s.score, mid, mid);
+      if (a === "better") lo = mid + 1; else hi = mid;
+      step();
+    }));
+  };
+  const finish = (exact, li, ui) => {
+    let score, between;
+    if (exact != null) { score = exact; between = seeds[li].name; }
+    else {
+      const lower = seeds[lo - 1];      // may be undefined at the bottom
+      const upper = seeds[lo];          // may be undefined at the top
+      const lowS = lower ? lower.score : 0;
+      const upS  = upper ? upper.score : 10;
+      score = Math.round(((lowS + upS) / 2) * 10) / 10;
+      if (lower && upper) between = `between ${lower.name} and ${upper.name}`;
+      else if (!lower) between = `below ${upper.name}`;
+      else between = `above ${lower.name}`;
+    }
+    input.innerHTML = `
+      <div class="versus">
+        <div class="sliderval">${score.toFixed(1)}<small> / 10</small></div>
+        <p class="how" style="text-align:center">Placed ${escapeHtml(between)}.</p>
+      </div>`;
+    commit(score, `${score.toFixed(1)} / 10`, { placement: between });
+  };
+  step();
+}
+
+/* three quick optional reactions after a rating is given */
+function renderReactions(key) {
+  const wrap = document.getElementById("react");
+  const r = state.results[key].reactions;
+  const chips = [
+    ["easy", "Easy to use"],
+    ["quick", "Quick"],
+    ["expressive", "Let me say what I meant"],
+  ];
+  wrap.innerHTML = `
+    <div class="reactions">
+      <div class="rtitle">Quick reaction (optional)</div>
+      <div class="chips">
+        ${chips.map(([k, lbl]) => `<button class="chip ${r[k] ? "on" : ""}" data-k="${k}">${lbl}</button>`).join("")}
+      </div>
+    </div>`;
+  wrap.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.k;
+    r[k] = !r[k];
+    b.classList.toggle("on", r[k]);
+  }));
+}
+
+function renderEnd() {
+  const rows = state.order.map(key => {
+    const res = state.results[key];
+    const meta = SYS_META[key];
+    return `
+      <div class="result-row">
+        <div class="result-sys">${meta.label}<small>${res.meta?.placement ? escapeHtml(res.meta.placement) : ""}</small></div>
+        <div class="result-val">${res.display}</div>
+      </div>`;
+  }).join("");
+
+  el.innerHTML = `
+    <h1>${escapeHtml(state.item)}</h1>
+    <p class="sub">The same thing, every scale. Notice how one gut feeling lands differently depending on how you're asked.</p>
+    <div>${rows}</div>
+    <label>Which system felt best?</label>
+    <div class="fav" id="fav">
+      ${state.order.map(key => `<button class="chip" data-k="${key}">${SYS_META[key].label}</button>`).join("")}
+    </div>
+    <label for="note">Any thoughts? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <input type="text" id="note" placeholder="what worked, what annoyed you…" />
+    <div class="actions">
+      <button class="btn-sec" id="save">Save + copy result</button>
+      <button class="btn-sec" id="again">Rate another</button>
+    </div>
+  `;
+  document.querySelectorAll("#fav .chip").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#fav .chip").forEach(c => c.classList.remove("on"));
+    b.classList.add("on");
+    state.favorite = b.dataset.k;
+  }));
+  document.getElementById("save").addEventListener("click", saveResult);
+  document.getElementById("again").addEventListener("click", renderStart);
+}
+
+/* ============================================================
+   SAVE — local only. See README for wiring a Google Sheet later.
+   ============================================================ */
+function saveResult() {
+  state.note = document.getElementById("note").value.trim();
+  const record = {
+    ts: new Date().toISOString(),
+    name: state.name || null,
+    item: state.item,
+    order: state.order,
+    favorite: state.favorite,
+    note: state.note || null,
+    ratings: state.order.map(key => ({
+      system: key,
+      value: state.results[key].value,
+      display: state.results[key].display,
+      placement: state.results[key].meta?.placement || null,
+      reactions: state.results[key].reactions,
+    })),
+  };
+  // persist to this browser
+  try {
+    const all = JSON.parse(localStorage.getItem("ratingPlayground") || "[]");
+    all.push(record);
+    localStorage.setItem("ratingPlayground", JSON.stringify(all));
+  } catch (e) { /* private mode etc. — ignore */ }
+  // copy to clipboard so it's easy to paste back to Meet
+  const text = JSON.stringify(record, null, 2);
+  navigator.clipboard?.writeText(text).catch(() => {});
+  const btn = document.getElementById("save");
+  btn.textContent = "Copied to clipboard ✓";
+  setTimeout(() => (btn.textContent = "Save + copy result"), 1800);
+
+  /* --- OPTIONAL: send to a Google Sheet via Apps Script Web App ---
+     Uncomment and set ENDPOINT to your deployed script URL.
+  const ENDPOINT = "https://script.google.com/macros/s/XXXX/exec";
+  fetch(ENDPOINT, { method: "POST", body: JSON.stringify(record) }); // text/plain avoids CORS preflight
+  */
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+renderStart();
+</script>
+</body>
+</html>
