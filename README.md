@@ -18,15 +18,18 @@ To share with friends/family, enable **GitHub Pages** (Settings → Pages → de
 
 ## Systems in this round
 
-Five, all of which work on a single item with no rating history required:
+Six, all of which work on a single item with no rating history required:
 
 1. **1–5 stars** — the familiar control.
 2. **1–6 numbers** — even, forced-lean, no decimals.
 3. **0–10 slider** — continuous, decimals allowed. The whole-vs-decimal and discrete-vs-continuous axis in one.
 4. **0–10 slider, with words** — the same slider, but each spot carries a feeling ("eh, I'd eat it if it was in front of me" … "I'd tell everyone to try this") and the colour shifts red→amber→green as you drag. Tests whether semantic + colour anchors make a scale easier to commit to. The labels live in `CONFIG.feelingLabels` — in the app these could be per-list customizable.
 5. **Comparison** — no number up front: answer "better or worse than X?" against a short seeded list of reference foods (binary insertion), and a 0–10 score is interpolated from where it lands. This is the only way to *feel* comparative/pairwise rating with no real history — the seeded foods stand in for a personal list.
+6. **Criteria split** — Airbnb / coffee-cupping style: rate a few facets (`CONFIG.criteria`, e.g. taste / texture / value) that roll up into a computed overall, *then* give a separate gut number and see how far apart they land. Two design calls are baked in and worth knowing: facets marked `countsToward:false` (value, by default) are shown but **not** folded into the roll-up — value is a different axis from quality, so averaging it in conflates the two; and the separate gut question exists because the research below says the overall is usually *not* the average of the parts.
 
-All the knobs — slider range, the seeded reference foods, which systems are included — are in the `CONFIG` block at the top of the `<script>` in `index.html`. Change them there.
+**On "do the parts add up?"** — real multi-attribute systems split two ways. Airbnb keeps the overall a **separate** gut rating (the six categories are collected but explicitly *not* averaged into it). Expert/judging systems **sum** the parts: SCA coffee cupping sums ten attributes to /100; RateBeer sums aroma/10 + appearance/5 + taste/10 + palate/5 + overall/20 → /50 (note it folds a holistic "overall" *into* the sum). This system lets you feel both at once via the computed-vs-gut gap.
+
+All the knobs — slider range, the seeded reference foods, the criteria and whether each counts toward the overall, which systems are included — are in the `CONFIG` block at the top of the `<script>` in `index.html`. Change them there.
 
 ## Data — where results go
 
@@ -50,7 +53,7 @@ All the knobs — slider range, the seeded reference foods, which systems are in
 ## Status / milestones
 
 - [x] M1 — static scaffold: start → randomized systems → end card
-- [x] M2 — the five systems (stars, 1–6, slider, slider-with-words, seeded comparison)
+- [x] M2 — the six systems (stars, 1–6, slider, slider-with-words, seeded comparison, criteria split)
 - [x] M3 — per-system reactions + side-by-side end card + local save
 - [x] M4 — Google Sheet data sink (`apps-script.gs`; set `CONFIG.endpoint` to enable)
 - [ ] M5 — share with friends/family and gather impressions
