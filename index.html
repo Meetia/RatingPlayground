@@ -83,15 +83,16 @@
   .sliderval small { font-size: 18px; color: var(--muted); font-weight: 600; }
   .sliderends { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
   .feel { text-align: center; font-size: 17px; font-weight: 600; min-height: 24px; margin: 2px 0 8px; transition: color .1s; }
-  .crit { display: flex; flex-direction: column; gap: 14px; }
-  .crit-row, .crit-gut { display: flex; flex-direction: column; gap: 6px; }
-  .crit-gut { border-top: 1px dashed var(--line); padding-top: 12px; }
+  .crit { display: flex; flex-direction: column; gap: 16px; }
+  .crit-row { display: flex; flex-direction: column; gap: 6px; }
+  .crit-parts { border-top: 1px dashed var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .crit-parts .rtitle { font-size: 13px; color: var(--muted); }
   .crit-name { font-size: 14px; font-weight: 600; }
   .crit-note { font-weight: 400; color: var(--muted); font-size: 12px; }
   .nums.small { gap: 5px; flex-wrap: wrap; }
   .num.sm { width: 38px; height: 38px; font-size: 15px; }
-  .crit-total { text-align: center; font-size: 18px; font-weight: 700; margin-top: 4px; }
-  .crit-total small { font-weight: 500; color: var(--muted); font-size: 14px; }
+  .crit-avg { text-align: center; font-size: 15px; color: var(--ink); margin-top: 2px; }
+  .crit-avg b { font-size: 18px; }
 
   /* comparison */
   .versus { text-align: center; }
@@ -177,18 +178,12 @@ const CONFIG = {
   // + clipboard). Paste your Apps Script Web App URL to collect everyone's runs in
   // one Google Sheet — see apps-script.gs and the README.
   endpoint: "https://script.google.com/macros/s/AKfycbywTECAW3PHN3QoaJS08884YmFYmzie61q2t3puQ4EkyUupbSYnQ51Bt7Zmb1WQhnnuBA/exec",
-  // "Criteria split" system — rate a few facets that roll up into an overall
-  // (Airbnb / coffee-cupping style). `countsToward:false` facets (like value) are
-  // shown and stored but NOT folded into the computed overall — value is a different
-  // axis from quality, so averaging it in would conflate the two. In the app these
-  // would be per-list customizable (e.g. crunchiness / airiness / flakiness / value).
-  criteria: [
-    { name: "taste",   countsToward: true },
-    { name: "texture", countsToward: true },
-    { name: "value",   countsToward: false },
-  ],
-  criteriaMax: 5,        // each facet rated 1..criteriaMax
-  criteriaAskGut: true,  // also ask a separate holistic 0–10 to reveal the sum-vs-gut gap
+  // "Criteria split" system — Airbnb style: an Overall gut score up top is the
+  // headline, and the parts below are rated separately. Their average is shown as a
+  // side readout only and is explicitly NOT the overall. In the app the parts would
+  // be per-list customizable (e.g. crunchiness / airiness / flakiness / value).
+  criteria: ["taste", "texture", "value"],   // the parts, each rated 1..criteriaMax
+  criteriaMax: 6,                            // 1..6 for the overall and every part
   // Systems included this round. Order is randomized per session.
   systems: ["stars5", "whole6", "slider", "sliderfeel", "seeded", "criteria"],
 };
@@ -223,7 +218,7 @@ const SYS_META = {
   slider:  { label: `0–${CONFIG.sliderMax} slider`, how: "Drag to any point on the line — decimals allowed." },
   sliderfeel: { label: `0–${CONFIG.sliderMax} slider, with words`, how: "Same slider, but every spot has a feeling attached and the colour shifts as you drag." },
   seeded:  { label: "Comparison",       how: "No number up front. Just say whether it was better or worse than things you've had before, and a score falls out." },
-  criteria: { label: "Criteria split",  how: "Rate a few parts. They roll up into an overall — then give a gut number and see whether the parts actually add up to the whole." },
+  criteria: { label: "Criteria split",  how: "Give it an overall first — that's your score. Then rate a few parts separately; their average is shown on the side, but it's not your overall." },
 };
 
 /* ============================================================
@@ -415,59 +410,56 @@ function renderSeeded(input, commit) {
 }
 
 function renderCriteria(input, commit) {
-  const crit = CONFIG.criteria, max = CONFIG.criteriaMax;
-  const summed = crit.filter(c => c.countsToward);
-  const vals = {};   // facet name -> 1..max
-  let gut = null;    // separate holistic 0..10
+  const parts = CONFIG.criteria, max = CONFIG.criteriaMax;
+  let overall = null;      // the headline score (1..max), given first
+  const vals = {};         // part name -> 1..max, rated separately
 
-  const computed = () => {
-    const got = summed.filter(c => vals[c.name] != null);
+  const avg = () => {
+    const got = parts.filter(p => vals[p] != null);
     if (!got.length) return null;
-    const avg = got.reduce((s, c) => s + vals[c.name], 0) / got.length;  // 1..max
-    return Math.round((avg / max * 10) * 10) / 10;                        // -> 0..10
+    return Math.round((got.reduce((s, p) => s + vals[p], 0) / got.length) * 10) / 10;
   };
 
   input.innerHTML = `
     <div class="crit">
-      ${crit.map(c => `
-        <div class="crit-row">
-          <div class="crit-name">${escapeHtml(c.name)}${c.countsToward ? "" : ' <span class="crit-note">(shown, not summed)</span>'}</div>
-          <div class="nums small" data-c="${escapeHtml(c.name)}">
-            ${Array.from({length: max}, (_, i) => i + 1).map(n => `<button class="num sm" data-n="${n}">${n}</button>`).join("")}
-          </div>
-        </div>`).join("")}
-      <div class="crit-total" id="ctotal">overall —</div>
-      ${CONFIG.criteriaAskGut ? `
-        <div class="crit-gut">
-          <div class="crit-name">your gut overall, ignoring the parts <span class="crit-note">(0–10)</span></div>
-          <div class="nums small" id="gut">${Array.from({length: 11}, (_, i) => i).map(n => `<button class="num sm" data-n="${n}">${n}</button>`).join("")}</div>
-        </div>` : ""}
+      <div class="crit-overall">
+        <div class="crit-name">Overall <span class="crit-note">— your score for this</span></div>
+        <div class="nums" id="overall">
+          ${Array.from({length: max}, (_, i) => i + 1).map(n => `<button class="num" data-n="${n}">${n}</button>`).join("")}
+        </div>
+      </div>
+      <div class="crit-parts">
+        <div class="rtitle">Rate the parts separately</div>
+        ${parts.map(p => `
+          <div class="crit-row">
+            <div class="crit-name">${escapeHtml(p)}</div>
+            <div class="nums small" data-c="${escapeHtml(p)}">
+              ${Array.from({length: max}, (_, i) => i + 1).map(n => `<button class="num sm" data-n="${n}">${n}</button>`).join("")}
+            </div>
+          </div>`).join("")}
+        <div class="crit-avg" id="cavg"></div>
+      </div>
     </div>`;
 
   const sync = () => {
+    input.querySelector("#overall").querySelectorAll(".num").forEach(b => b.classList.toggle("on", overall === +b.dataset.n));
     input.querySelectorAll(".nums[data-c]").forEach(row => {
       const name = row.dataset.c;
       row.querySelectorAll(".num").forEach(b => b.classList.toggle("on", vals[name] === +b.dataset.n));
     });
-    if (CONFIG.criteriaAskGut) {
-      input.querySelector("#gut").querySelectorAll(".num").forEach(b => b.classList.toggle("on", gut === +b.dataset.n));
-    }
-    const c = computed();
-    input.querySelector("#ctotal").innerHTML = c == null
-      ? "overall —"
-      : `overall ${c.toFixed(1)}<small> / 10</small>` + (gut != null ? ` &nbsp;·&nbsp; <small>your gut</small> ${gut}<small> / 10</small>` : "");
-    if (summed.every(cc => vals[cc.name] != null)) {
-      const detail = crit.map(cc => `${cc.name} ${vals[cc.name] != null ? vals[cc.name] : "-"}/${max}`).join(", ");
-      commit(c, `${c.toFixed(1)} / 10`, { criteria: Object.assign({}, vals), computed: c, gut: gut, detail: detail });
+    const a = avg();
+    input.querySelector("#cavg").innerHTML = a == null ? ""
+      : `criteria average <b>${a.toFixed(1)}</b> / ${max} <span class="crit-note">— just an average of the parts, not your overall</span>`;
+    if (overall != null) {   // overall is the only required field — it's the headline
+      const detail = parts.map(p => `${p} ${vals[p] != null ? vals[p] : "-"}/${max}`).join(", ");
+      commit(overall, `${overall} / ${max}`, { overall: overall, criteria: Object.assign({}, vals), criteriaAvg: a, detail: detail });
     }
   };
 
+  input.querySelector("#overall").querySelectorAll(".num").forEach(b => b.addEventListener("click", () => { overall = +b.dataset.n; sync(); }));
   input.querySelectorAll(".nums[data-c]").forEach(row => {
     row.querySelectorAll(".num").forEach(b => b.addEventListener("click", () => { vals[row.dataset.c] = +b.dataset.n; sync(); }));
   });
-  if (CONFIG.criteriaAskGut) {
-    input.querySelector("#gut").querySelectorAll(".num").forEach(b => b.addEventListener("click", () => { gut = +b.dataset.n; sync(); }));
-  }
 }
 
 /* quick optional reactions after a rating is given — tap any that apply */
@@ -501,7 +493,7 @@ function renderEnd() {
     const meta = SYS_META[key];
     const sub = res.meta?.placement ? escapeHtml(res.meta.placement)
               : res.meta?.feeling ? "“" + escapeHtml(res.meta.feeling) + "”"
-              : res.meta?.detail ? escapeHtml(res.meta.detail + (res.meta.gut != null ? " · gut " + res.meta.gut : "")) : "";
+              : res.meta?.detail ? escapeHtml(res.meta.detail + (res.meta.criteriaAvg != null ? " · avg " + res.meta.criteriaAvg : "")) : "";
     return `
       <div class="result-row">
         <div class="result-sys">${meta.label}<small>${sub}</small></div>
@@ -555,9 +547,9 @@ function saveResult() {
       display: state.results[key].display,
       placement: state.results[key].meta?.placement || null,
       feeling: state.results[key].meta?.feeling || null,
+      overall: state.results[key].meta?.overall ?? null,
       criteria: state.results[key].meta?.criteria || null,
-      computed: state.results[key].meta?.computed ?? null,
-      gut: state.results[key].meta?.gut ?? null,
+      criteriaAvg: state.results[key].meta?.criteriaAvg ?? null,
       detail: state.results[key].meta?.detail || null,
       reactions: state.results[key].reactions,
     })),

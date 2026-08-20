@@ -54,7 +54,7 @@ function doPost(e) {
                  'slider', 'slider_reactions',
                  'sliderfeel', 'sliderfeel_feeling', 'sliderfeel_reactions',
                  'seeded', 'seeded_reactions',
-                 'criteria', 'criteria_detail', 'criteria_gut', 'criteria_reactions',
+                 'criteria', 'criteria_detail', 'criteria_avg', 'criteria_reactions',
                  'raw'];
 
   // write/refresh the header row if it's empty or the schema changed
@@ -65,11 +65,11 @@ function doPost(e) {
 
   var RLBL = { easy: 'easy', quick: 'quick', expressive: 'expressive',
                lowload: 'low-effort', decisive: 'decisive' };
-  var byId = {}, byReact = {}, feeling = '', critDetail = '', critGut = '';
+  var byId = {}, byReact = {}, feeling = '', critDetail = '', critAvg = '';
   (data.ratings || []).forEach(function (r) {
     byId[r.system] = r.display;
     if (r.system === 'sliderfeel') feeling = r.feeling || '';
-    if (r.system === 'criteria') { critDetail = r.detail || ''; critGut = (r.gut == null ? '' : r.gut); }
+    if (r.system === 'criteria') { critDetail = r.detail || ''; critAvg = (r.criteriaAvg == null ? '' : r.criteriaAvg); }
     var on = [];
     var rx = r.reactions || {};
     Object.keys(rx).forEach(function (k) { if (rx[k]) on.push(RLBL[k] || k); });
@@ -84,7 +84,7 @@ function doPost(e) {
     byId.slider || '',     byReact.slider || '',
     byId.sliderfeel || '', feeling, byReact.sliderfeel || '',
     byId.seeded || '',     byReact.seeded || '',
-    byId.criteria || '',   critDetail, critGut, byReact.criteria || '',
+    byId.criteria || '',   critDetail, critAvg, byReact.criteria || '',
     JSON.stringify(data)
   ]);
   return ContentService.createTextOutput('ok');
