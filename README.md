@@ -2,7 +2,11 @@
 
 A throwaway toy for **feeling** different rating systems on a real food item — the experiment behind the rating-scale decision for [The Prospect Project](https://github.com/Meetia/TheProspectProject). The research and reasoning live in that repo's `docs/rating-system-research.md`; this repo is just the clickable prototype.
 
-It is **not** part of the app. Plain static HTML/CSS/JS, one file, no build step, no backend.
+It is **not** part of the app. Plain static HTML/CSS/JS, no build step, no backend.
+
+Two pages:
+- **`index.html`** — the rating-systems experiment (below).
+- **`new-entry.html`** — a mockup of the app's "New entry" screen (place / rating / address / notes / photo), built from `docs/app-design.md`. The rest of the form is fixed; a control tray lets you experiment with the **rating control** live — swap method (numbers / stars / slider), change the number and size of the buckets, and edit the slider's words. Toggle the iPhone frame on/off. Nothing is stored — it's purely for feeling the layout.
 
 ## What it does
 
