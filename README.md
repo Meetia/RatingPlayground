@@ -6,7 +6,7 @@ It is **not** part of the app. Plain static HTML/CSS/JS, no build step, no backe
 
 Two pages:
 - **`index.html`** — the rating-systems experiment (below).
-- **`new-entry.html`** — a mockup of the app's "New entry" screen (place / rating / address / notes / photo), built from `docs/app-design.md`. The rest of the form is fixed; a control tray lets you experiment with the **rating control** live — swap method (numbers / stars / slider), change the number and size of the buckets, and edit the slider's words. Toggle the iPhone frame on/off. Nothing is stored — it's purely for feeling the layout.
+- **`new-entry.html`** — a mockup of the app's "New entry" screen (place / rating / address / notes / photo), built from `docs/app-design.md`. The rest of the form is fixed; a control tray lets you experiment with the **rating control** live — swap method (numbers / stars / slider / criteria), change the number and size of the buckets, and edit the slider's words. Criteria mode shows the Airbnb layout in context: an Overall (the rating) with an optional taste/texture/value breakdown below. Toggle the iPhone frame on/off. Nothing is stored — it's purely for feeling the layout.
 
 ## What it does
 

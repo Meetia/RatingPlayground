@@ -78,6 +78,12 @@
   .rt-word{text-align:center;font-size:16px;font-weight:600;min-height:22px;margin-bottom:6px;transition:color .1s;}
   .rt-slider input[type=range]{width:100%;accent-color:var(--tint);height:26px;}
   .rt-ends{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;}
+  .ne-crit{display:flex;flex-direction:column;gap:14px;}
+  .ne-parts{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px;}
+  .ne-parts-label{font-size:12px;color:var(--muted);}
+  .ne-part-row{display:flex;flex-direction:column;gap:5px;}
+  .ne-part-name{font-size:13px;font-weight:600;}
+  .ne-crit-avg{font-size:13px;color:var(--muted);text-align:center;margin-top:2px;}
 
   /* photo */
   .photo-btn{
@@ -170,6 +176,7 @@
         <button data-m="numbers" class="on">Numbers</button>
         <button data-m="stars">Stars</button>
         <button data-m="slider">Slider</button>
+        <button data-m="criteria">Criteria</button>
       </div>
     </div>
 
@@ -213,7 +220,8 @@ function sliderColor(v,max){ return `hsl(${Math.round((v/max)*130)} 60% 42%)`; }
 function range(a,b){ const r=[]; for(let i=a;i<=b;i++) r.push(i); return r; }
 function escapeAttr(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;"); }
 
-const S = { method:'numbers', count:6, size:'m', words:defaultWords(6), value:null };
+const CRIT_PARTS = ["taste","texture","value"];
+const S = { method:'numbers', count:6, size:'m', words:defaultWords(6), value:null, parts:{} };
 
 const ratingBox = document.getElementById('rating-control');
 const saveBtn = document.getElementById('save');
@@ -232,6 +240,31 @@ function renderRating(){
   } else if(S.method==='stars'){
     ratingBox.innerHTML = `<div class="rt-stars size-${S.size}">${range(1,S.count).map(n=>`<button class="rt-star ${S.value>=n?'on':''}" data-n="${n}">★</button>`).join("")}</div>`;
     ratingBox.querySelectorAll('.rt-star').forEach(b=>b.onclick=()=>{S.value=+b.dataset.n;renderRating();onChange();});
+  } else if(S.method==='criteria'){
+    const avg = ()=>{ const got=CRIT_PARTS.filter(p=>S.parts[p]!=null); if(!got.length) return null; return Math.round((got.reduce((s,p)=>s+S.parts[p],0)/got.length)*10)/10; };
+    ratingBox.innerHTML = `
+      <div class="ne-crit">
+        <div class="rt-nums size-${S.size}" id="ne-overall">
+          ${range(1,S.count).map(n=>`<button class="rt-num ${S.value===n?'on':''}" data-n="${n}">${n}</button>`).join("")}
+        </div>
+        <div class="ne-parts">
+          <div class="ne-parts-label">Break it down — optional, doesn't change your rating</div>
+          ${CRIT_PARTS.map(p=>`
+            <div class="ne-part-row">
+              <div class="ne-part-name">${p}</div>
+              <div class="rt-nums size-s" data-c="${p}">
+                ${range(1,S.count).map(n=>`<button class="rt-num ${S.parts[p]===n?'on':''}" data-n="${n}">${n}</button>`).join("")}
+              </div>
+            </div>`).join("")}
+          <div class="ne-crit-avg" id="ne-avg"></div>
+        </div>
+      </div>`;
+    const a = avg();
+    ratingBox.querySelector('#ne-avg').textContent = a==null ? "" : `criteria average ${a.toFixed(1)} / ${S.count} — not your rating`;
+    ratingBox.querySelector('#ne-overall').querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.value=+b.dataset.n;renderRating();onChange();});
+    ratingBox.querySelectorAll('.ne-parts .rt-nums[data-c]').forEach(row=>{
+      row.querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.parts[row.dataset.c]=+b.dataset.n;renderRating();});
+    });
   } else {
     const start = S.value==null ? Math.round(S.count/2) : S.value;
     ratingBox.innerHTML = `
@@ -265,7 +298,7 @@ function renderWordsEditor(){
 document.querySelectorAll('#seg-method button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#seg-method button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
-  S.method=b.dataset.m; S.value=null;
+  S.method=b.dataset.m; S.value=null; S.parts={};
   if(S.method==='slider' && S.words.length!==S.count+1) S.words=defaultWords(S.count);
   renderRating(); renderWordsEditor(); onChange();
 });
@@ -274,6 +307,7 @@ document.querySelectorAll('#seg-method button').forEach(b=>b.onclick=()=>{
 function setCount(n){
   S.count = Math.max(2, Math.min(10, n));
   S.value = null;
+  S.parts = {};
   S.words = defaultWords(S.count);
   document.getElementById('count-val').textContent = S.count + " buckets";
   document.getElementById('count-label').textContent = "Buckets: " + S.count;
