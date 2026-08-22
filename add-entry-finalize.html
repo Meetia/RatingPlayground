@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add Entry — Finalists</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; --surface:#fff; --bg:#f2f2f0;
+    --accent:#c2703d; --accent-soft:#f3e4d7; --tint:#c2703d; --tint-soft:#f6e8db; --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .page{max-width:520px;margin:0 auto;padding:20px 16px 60px;}
+  .pagehead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+  .pagehead h1{font-size:18px;margin:0;}
+  .pagehead a{font-size:13px;color:var(--accent);text-decoration:none;}
+  .pagehead a:hover{text-decoration:underline;}
+
+  .phone{max-width:380px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 6px 30px rgba(0,0,0,.08);}
+  .phone.framed{border-radius:44px;border:11px solid #0e0e10;box-shadow:0 12px 44px rgba(0,0,0,.28);}
+  .statusbar{display:none;}
+  .phone.framed .statusbar{display:flex;justify-content:space-between;align-items:center;padding:12px 26px 6px;font-size:13px;font-weight:600;}
+  .statusbar .dots{letter-spacing:2px;}
+  .home-indicator{display:none;}
+  .phone.framed .home-indicator{display:block;height:5px;width:120px;background:#111;border-radius:3px;margin:6px auto 10px;opacity:.85;}
+
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);}
+  .navbar .title{font-size:16px;font-weight:600;}
+  .nav-btn{background:none;border:none;font:inherit;font-size:16px;cursor:pointer;padding:2px;}
+  .nav-cancel{color:var(--muted);}
+  .nav-save{color:var(--accent);font-weight:600;}
+  .nav-save.muted{color:#c9c4be;cursor:default;}
+
+  .screen{padding:16px;}
+  .field{margin-bottom:18px;}
+  .field.flash{animation:flash .5s ease;}
+  @keyframes flash{0%{background:var(--tint-soft);}100%{background:transparent;}}
+  .flabel{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:7px;}
+  .req{color:var(--accent);}
+  input[type=text].tinput,textarea.tinput{width:100%;padding:11px 12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+  input[type=text].tinput:focus,textarea.tinput:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  textarea.tinput{resize:none;min-height:76px;line-height:1.4;}
+
+  /* rating primitives */
+  .rt-nums{display:flex;gap:8px;flex-wrap:wrap;}
+  .rt-num{border:1px solid var(--line);border-radius:12px;background:#f4f3f1;color:var(--ink);font-weight:600;cursor:pointer;width:50px;height:50px;font-size:18px;}
+  .rt-num.sm{width:44px;height:44px;font-size:15px;}
+  .rt-num.on{background:var(--tint);color:#fff;border-color:var(--tint);}
+  .rt-word{font-size:16px;font-weight:600;min-height:22px;margin-top:8px;transition:color .1s;}
+  .rt-slider input[type=range]{width:100%;accent-color:var(--tint);height:26px;}
+  .rt-sval{text-align:center;font-size:34px;font-weight:700;margin-bottom:2px;}
+  .rt-sval small{font-size:16px;color:var(--muted);font-weight:600;}
+  .rt-sword{text-align:center;font-size:16px;font-weight:600;min-height:22px;margin-bottom:6px;}
+  .rt-ends{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;}
+  .ne-crit{display:flex;flex-direction:column;gap:14px;}
+  .ne-parts{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:12px;}
+  .ne-parts-label{font-size:12px;color:var(--muted);}
+  .ne-part-row{display:flex;flex-direction:column;gap:5px;}
+  .ne-part-name{font-size:13px;font-weight:600;}
+  .part-word{font-size:13px;font-weight:600;min-height:18px;}
+  .ne-crit-avg{font-size:13px;color:var(--muted);text-align:center;}
+
+  .photo-btn{width:100%;border:1.5px dashed var(--line);border-radius:12px;background:#fafaf9;color:var(--muted);padding:18px;font-size:15px;cursor:pointer;text-align:center;}
+  .photo-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .tray{margin:22px auto 0;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+  .tray h2{font-size:14px;margin:0 0 2px;}
+  .tray .sub{font-size:12px;color:var(--muted);margin:0 0 14px;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .seg button{background:#fff;border:none;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink);border-right:1px solid var(--line);}
+  .seg button:last-child{border-right:none;}
+  .seg button.on{background:var(--accent);color:#fff;}
+  .opt-desc{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.45;}
+  .placeholder-note{font-size:11.5px;color:#a06a3d;background:var(--tint-soft);border-radius:8px;padding:8px 10px;margin-top:10px;}
+  .toggle-row{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:14px;}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:22px;}
+  .saved-toast{text-align:center;color:#2f7d4f;font-size:13px;font-weight:600;min-height:18px;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="pagehead">
+    <h1>Add-entry · rating finalists</h1>
+    <a href="add-entry-lab.html">← lab</a>
+  </div>
+
+  <div class="phone framed" id="phone">
+    <div class="statusbar"><span>9:41</span><span class="dots">● ‹›  ▮</span></div>
+    <div class="navbar">
+      <button class="nav-btn nav-cancel">Cancel</button>
+      <div class="title">New entry</div>
+      <button class="nav-btn nav-save muted" id="save" disabled>Save</button>
+    </div>
+    <div class="screen">
+      <div class="field" id="f-place">
+        <div class="flabel">Place <span class="req">*</span></div>
+        <input type="text" class="tinput" id="place" placeholder="e.g. Der Pioneer" autocomplete="off" />
+      </div>
+      <div class="field" id="f-rating">
+        <div class="flabel">Rating <span class="req">*</span></div>
+        <div id="rating-control"></div>
+      </div>
+      <div class="field">
+        <div class="flabel">Address or Maps link</div>
+        <input type="text" class="tinput" placeholder="Paste an address or a Maps link" />
+      </div>
+      <div class="field">
+        <div class="flabel">Notes</div>
+        <textarea class="tinput" placeholder="Anything worth remembering…"></textarea>
+      </div>
+      <div class="field">
+        <div class="flabel">Photo</div>
+        <div id="photo-slot"><button class="photo-btn" id="photo-btn">＋ Add photo</button></div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+  <div class="saved-toast" id="toast"></div>
+
+  <div class="tray">
+    <h2>Try each finalist</h2>
+    <p class="sub">Three ways of combining the criteria breakdown with per-level words. Only the Rating field changes.</p>
+    <div class="seg" id="seg-opt">
+      <button data-o="A" class="on">A · worded overall</button>
+      <button data-o="B">B · worded parts</button>
+      <button data-o="C">C · word slider</button>
+    </div>
+    <div class="opt-desc" id="opt-desc"></div>
+    <div class="placeholder-note" id="ph-note" style="display:none"></div>
+    <div class="toggle-row"><input type="checkbox" id="frame-toggle" checked /><label for="frame-toggle">Show iPhone frame</label></div>
+  </div>
+
+  <div class="foot">Finalist rating inputs for the add-entry screen · mockup, nothing stored</div>
+</div>
+
+<script>
+/* ---------- word ladders (CONFIG) ---------- */
+// Overall words for Option A (index 0 = a rating of 1 … index 5 = 6)
+const OVERALL6 = ["never again","not for me","fine","pretty good","excellent","best I've had"];
+// Option C overall = 0–10 slider; word by rounded value (index 0..10)
+const SLIDER11 = ["never again","couldn't finish","pretty bad","meh","just okay","fine","pretty good","really good","excellent","incredible","best ever"];
+// Option B: PER-ATTRIBUTE ladders (index 0 = 1 … 5 = 6).
+// ⚠️ PLACEHOLDERS — Meet to supply the real attributes + words.
+const PART_WORDS = {
+  taste:   ["inedible","bland","just okay","tasty","delicious","transcendent"],
+  texture: ["unpleasant","a bit off","fine","nice","great","perfect"],
+  value:   ["rip-off","overpriced","fair","good deal","great value","a steal"],
+};
+const PARTS = ["taste","texture","value"];
+const DESC = {
+  A: "The score is a number (1–6); picking it reveals a word so the level has meaning. The breakdown below is plain and optional — quick to skip.",
+  B: "The overall is a fast gut number (1–6). Each part carries its own descriptive words, so the breakdown reads like a tasting note.",
+  C: "The overall is a 0–10 worded slider (fine-grained, with a word + colour). The parts are quick 1–5 taps.",
+};
+
+/* ---------- state ---------- */
+const S = { opt:'A', overall:null, parts:{} };
+const box = document.getElementById('rating-control');
+const saveBtn = document.getElementById('save');
+const placeInput = document.getElementById('place');
+
+function onChange(){
+  const ok = placeInput.value.trim()!=="" && S.overall!=null;
+  saveBtn.disabled=!ok; saveBtn.classList.toggle('muted',!ok);
+}
+function sliderColor(v,max){ return `hsl(${Math.round((v/max)*130)} 60% 42%)`; }
+function range(a,b){ const r=[]; for(let i=a;i<=b;i++) r.push(i); return r; }
+
+function render(){
+  if(S.opt==='A') renderA();
+  else if(S.opt==='B') renderB();
+  else renderC();
+}
+
+/* A — worded overall (number + reveal), plain parts */
+function renderA(){
+  const avg = ()=>{ const g=PARTS.filter(p=>S.parts[p]!=null); return g.length? Math.round((g.reduce((s,p)=>s+S.parts[p],0)/g.length)*10)/10 : null; };
+  box.innerHTML = `
+    <div class="ne-crit">
+      <div class="rt-nums" id="ov">${range(1,6).map(n=>`<button class="rt-num ${S.overall===n?'on':''}" data-n="${n}">${n}</button>`).join("")}</div>
+      <div class="rt-word" id="ovword">${S.overall!=null?"“"+OVERALL6[S.overall-1]+"”":""}</div>
+      <div class="ne-parts">
+        <div class="ne-parts-label">Break it down — optional, doesn't change your rating</div>
+        ${PARTS.map(p=>`<div class="ne-part-row"><div class="ne-part-name">${p}</div>
+          <div class="rt-nums" data-c="${p}">${range(1,6).map(n=>`<button class="rt-num sm ${S.parts[p]===n?'on':''}" data-n="${n}">${n}</button>`).join("")}</div></div>`).join("")}
+        <div class="ne-crit-avg" id="avg">${avg()!=null?`criteria average ${avg().toFixed(1)} / 6 — not your rating`:""}</div>
+      </div>
+    </div>`;
+  box.querySelector('#ov').querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.overall=+b.dataset.n;render();onChange();});
+  box.querySelectorAll('.ne-parts .rt-nums[data-c]').forEach(row=>row.querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.parts[row.dataset.c]=+b.dataset.n;render();}));
+}
+
+/* B — gut overall (plain), worded parts (per-attribute reveal) */
+function renderB(){
+  box.innerHTML = `
+    <div class="ne-crit">
+      <div class="rt-nums" id="ov">${range(1,6).map(n=>`<button class="rt-num ${S.overall===n?'on':''}" data-n="${n}">${n}</button>`).join("")}</div>
+      <div class="ne-parts">
+        <div class="ne-parts-label">The parts</div>
+        ${PARTS.map(p=>`<div class="ne-part-row"><div class="ne-part-name">${p}</div>
+          <div class="rt-nums" data-c="${p}">${range(1,6).map(n=>`<button class="rt-num sm ${S.parts[p]===n?'on':''}" data-n="${n}">${n}</button>`).join("")}</div>
+          <div class="part-word" data-w="${p}">${S.parts[p]!=null?"“"+PART_WORDS[p][S.parts[p]-1]+"”":""}</div></div>`).join("")}
+      </div>
+    </div>`;
+  box.querySelector('#ov').querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.overall=+b.dataset.n;render();onChange();});
+  box.querySelectorAll('.ne-parts .rt-nums[data-c]').forEach(row=>row.querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.parts[row.dataset.c]=+b.dataset.n;render();}));
+}
+
+/* C — worded slider overall (0–10), discrete 1–5 parts */
+function renderC(){
+  const start = S.overall==null ? 5 : S.overall;
+  const avg = ()=>{ const g=PARTS.filter(p=>S.parts[p]!=null); return g.length? Math.round((g.reduce((s,p)=>s+S.parts[p],0)/g.length)*10)/10 : null; };
+  box.innerHTML = `
+    <div class="ne-crit">
+      <div class="rt-slider">
+        <div class="rt-sval" id="sval">–<small> / 10</small></div>
+        <div class="rt-sword" id="sword"></div>
+        <input type="range" min="0" max="10" step="0.1" value="${start}" id="rng" />
+        <div class="rt-ends"><span>0</span><span>10</span></div>
+      </div>
+      <div class="ne-parts">
+        <div class="ne-parts-label">Break it down — optional, quick 1–5</div>
+        ${PARTS.map(p=>`<div class="ne-part-row"><div class="ne-part-name">${p}</div>
+          <div class="rt-nums" data-c="${p}">${range(1,5).map(n=>`<button class="rt-num sm ${S.parts[p]===n?'on':''}" data-n="${n}">${n}</button>`).join("")}</div></div>`).join("")}
+        <div class="ne-crit-avg" id="avg">${avg()!=null?`criteria average ${avg().toFixed(1)} / 5 — not your rating`:""}</div>
+      </div>
+    </div>`;
+  const rng=box.querySelector('#rng'), sval=box.querySelector('#sval'), sword=box.querySelector('#sword');
+  const paint=(v,commit)=>{ const c=sliderColor(v,10); sval.innerHTML=`${v.toFixed(1)}<small> / 10</small>`; sval.style.color=c; sword.textContent="“"+SLIDER11[Math.round(v)]+"”"; sword.style.color=c; rng.style.accentColor=c; if(commit){S.overall=v;onChange();} };
+  rng.oninput=()=>paint(+rng.value,true);
+  paint(start,false);
+  box.querySelectorAll('.ne-parts .rt-nums[data-c]').forEach(row=>row.querySelectorAll('.rt-num').forEach(b=>b.onclick=()=>{S.parts[row.dataset.c]=+b.dataset.n;render();}));
+}
+
+/* option switch */
+document.querySelectorAll('#seg-opt button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#seg-opt button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  S.opt=b.dataset.o; S.overall=null; S.parts={};
+  document.getElementById('opt-desc').textContent=DESC[S.opt];
+  const ph=document.getElementById('ph-note');
+  if(S.opt==='B'){ ph.style.display='block'; ph.textContent='Words are placeholders — swap in your real attributes + ladders (PART_WORDS in the source).'; }
+  else ph.style.display='none';
+  render(); onChange();
+});
+
+/* frame + photo + place + save */
+document.getElementById('frame-toggle').onchange=e=>document.getElementById('phone').classList.toggle('framed',e.target.checked);
+const photoSlot=document.getElementById('photo-slot');
+function renderPhoto(has){ if(has){photoSlot.innerHTML=`<button class="photo-btn" id="pb">Photo added ✓ (tap to remove)</button>`;photoSlot.querySelector('#pb').onclick=()=>renderPhoto(false);} else {photoSlot.innerHTML=`<button class="photo-btn" id="pb">＋ Add photo</button>`;photoSlot.querySelector('#pb').onclick=()=>renderPhoto(true);} }
+placeInput.addEventListener('input', onChange);
+saveBtn.onclick=()=>{ if(saveBtn.disabled){ ['f-place','f-rating'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}); return;} const t=document.getElementById('toast'); t.textContent="Saved ✓  (mockup — nothing stored)"; setTimeout(()=>t.textContent="",2200); };
+document.querySelector('.nav-cancel').onclick=()=>{ placeInput.value=""; S.overall=null; S.parts={}; render(); renderPhoto(false); onChange(); };
+
+/* init */
+document.getElementById('opt-desc').textContent=DESC.A;
+render(); renderPhoto(false); onChange();
+</script>
+</body>
+</html>

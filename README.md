@@ -4,9 +4,13 @@ A throwaway toy for **feeling** different rating systems on a real food item —
 
 It is **not** part of the app. Plain static HTML/CSS/JS, no build step, no backend.
 
-Two pages:
+Pages:
 - **`index.html`** — the rating-systems experiment (below).
-- **`new-entry.html`** — a mockup of the app's "New entry" screen (place / rating / address / notes / photo), built from `docs/app-design.md`. The rest of the form is fixed; a control tray lets you experiment with the **rating control** live — swap method (numbers / stars / slider / criteria), change the number and size of the buckets, and edit the slider's words. Criteria mode shows the Airbnb layout in context: an Overall (the rating) with an optional taste/texture/value breakdown below. Toggle the iPhone frame on/off. Nothing is stored — it's purely for feeling the layout.
+- **`add-entry-finalize.html`** — a clean mockup of the app's "New entry" screen with the **three finalist rating inputs** selectable (A worded-overall / B worded-parts / C word-slider), for deciding. See `rating-combinations.md` for what each is and what was ruled out.
+- **`add-entry-lab.html`** — the fully-configurable version of the same screen: a control tray to swap method (numbers / stars / slider / criteria), change the number and size of the buckets, and edit the slider's words. For open-ended experimentation.
+- **`rating-combinations.md`** — the write-up: the criteria + words permutations considered, the three being prototyped, and why the others (word-first overall; numbers-in/word-out) were rejected or parked, framed around the target user.
+
+The add-entry mockups are built from `docs/app-design.md`; the form is fixed and only the Rating field changes. Toggle the iPhone frame on/off. Nothing is stored — purely for feeling the layout.
 
 ## What it does
 
