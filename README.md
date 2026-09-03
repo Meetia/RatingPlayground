@@ -8,6 +8,7 @@ Pages:
 - **`index.html`** — the rating-systems experiment (below).
 - **`add-entry-finalize.html`** — a clean mockup of the app's "New entry" screen with the **three finalist rating inputs** selectable (A worded-overall / B worded-parts / C word-slider), for deciding. See `rating-combinations.md` for what each is and what was ruled out.
 - **`add-entry-lab.html`** — the fully-configurable version of the same screen: a control tray to swap method (numbers / stars / slider / criteria), change the number and size of the buckets, and edit the slider's words. For open-ended experimentation.
+- **`comparative-context.html`** — eight ways to show *where a rating lands in your existing list* as you drag the finalist word-slider (caption, neighbor chips, rank/percentile, number-line rail, distribution histogram, word-tier bands, ghost cards, live list). Feeds `docs/design/comparative-rating-options.md` + a future ADR in the main repo.
 - **`rating-combinations.md`** — the write-up: the criteria + words permutations considered, the three being prototyped, and why the others (word-first overall; numbers-in/word-out) were rejected or parked, framed around the target user.
 
 The add-entry mockups are built from `docs/app-design.md`; the form is fixed and only the Rating field changes. Toggle the iPhone frame on/off. Nothing is stored — purely for feeling the layout.
