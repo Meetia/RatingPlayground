@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add Entry — Comparative Context</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; --surface:#fff; --bg:#f2f2f0;
+    --accent:#c2703d; --accent-soft:#f3e4d7; --tint:#c2703d; --tint-soft:#f6e8db; --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .page{max-width:560px;margin:0 auto;padding:20px 16px 60px;}
+  .pagehead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap;}
+  .pagehead h1{font-size:18px;margin:0;}
+  .pagehead a{font-size:13px;color:var(--accent);text-decoration:none;}
+  .pagehead a:hover{text-decoration:underline;}
+  .intro{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 16px;}
+
+  .phone{max-width:390px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:0 6px 30px rgba(0,0,0,.08);}
+  .phone.framed{border-radius:44px;border:11px solid #0e0e10;box-shadow:0 12px 44px rgba(0,0,0,.28);}
+  .statusbar{display:none;}
+  .phone.framed .statusbar{display:flex;justify-content:space-between;align-items:center;padding:12px 26px 6px;font-size:13px;font-weight:600;}
+  .statusbar .dots{letter-spacing:2px;}
+  .home-indicator{display:none;}
+  .phone.framed .home-indicator{display:block;height:5px;width:120px;background:#111;border-radius:3px;margin:6px auto 10px;opacity:.85;}
+
+  .navbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);}
+  .navbar .title{font-size:16px;font-weight:600;}
+  .nav-btn{background:none;border:none;font:inherit;font-size:16px;cursor:pointer;padding:2px;}
+  .nav-cancel{color:var(--muted);}
+  .nav-save{color:var(--accent);font-weight:600;}
+  .nav-save.muted{color:#c9c4be;cursor:default;}
+
+  .screen{padding:16px;max-height:640px;overflow-y:auto;}
+  .field{margin-bottom:18px;}
+  .flabel{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:7px;}
+  .req{color:var(--accent);}
+  input[type=text].tinput,textarea.tinput{width:100%;padding:11px 12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+  input[type=text].tinput:focus,textarea.tinput:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  textarea.tinput{resize:none;min-height:64px;line-height:1.4;}
+
+  /* slider base (shared) */
+  .rt-slider input[type=range]{width:100%;accent-color:var(--tint);height:26px;}
+  .rt-sval{text-align:center;font-size:34px;font-weight:700;margin-bottom:2px;}
+  .rt-sval small{font-size:16px;color:var(--muted);font-weight:600;}
+  .rt-sword{text-align:center;font-size:16px;font-weight:600;min-height:22px;margin-bottom:6px;}
+  .rt-ends{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;}
+
+  /* context slot */
+  .ctx{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);min-height:96px;}
+  .ctx-empty{font-size:12.5px;color:var(--muted);text-align:center;padding:12px 0;}
+
+  /* thumbnails */
+  .thumb{border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:15px;}
+  .thumb.sm{width:26px;height:26px;font-size:13px;border-radius:6px;}
+  .thumb.md{width:34px;height:34px;}
+  .thumb.lg{width:100%;aspect-ratio:16/9;font-size:34px;border-radius:0;}
+
+  /* v1 caption */
+  .v-caption{font-size:14px;line-height:1.6;text-align:center;color:var(--ink);}
+  .v-caption b{font-weight:700;}
+  .v-caption .sc{color:var(--muted);font-weight:600;}
+  .v-caption .edge{color:var(--accent);font-weight:700;}
+
+  /* v2 chips */
+  .v-chips{display:flex;flex-direction:column;gap:0;align-items:stretch;}
+  .nchip{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fafaf9;}
+  .nchip .nm{font-size:13.5px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nchip .sc{font-size:13.5px;font-weight:700;color:var(--muted);}
+  .v-chips .youbar{display:flex;align-items:center;gap:8px;margin:7px 2px;color:var(--accent);font-size:12.5px;font-weight:700;}
+  .v-chips .youbar .ln{flex:1;height:2px;background:var(--accent);opacity:.5;border-radius:2px;}
+  .v-chips .dim{opacity:.6;}
+
+  /* v3 rank stat */
+  .v-rank{display:flex;align-items:center;justify-content:center;gap:20px;}
+  .v-rank .big{font-size:40px;font-weight:800;line-height:1;}
+  .v-rank .big small{font-size:16px;color:var(--muted);font-weight:600;}
+  .v-rank .meta{font-size:12.5px;color:var(--muted);line-height:1.7;}
+  .v-rank .meta b{color:var(--ink);}
+  .v-rank .pct{display:inline-block;margin-top:3px;font-size:12px;font-weight:700;color:#2f7d4f;background:#e8f3ec;border-radius:20px;padding:2px 9px;}
+
+  /* v4 rail — three stacked rows so flanking labels never collide */
+  .v-rail{padding:4px 8px;}
+  .railtop,.railbot{position:relative;height:15px;}
+  .railmid{position:relative;height:32px;}
+  .railline{position:absolute;left:0;right:0;top:15px;height:3px;background:var(--line);border-radius:2px;}
+  .raildot{position:absolute;top:8px;width:16px;height:16px;border-radius:5px;transform:translateX(-50%);box-shadow:0 1px 3px rgba(0,0,0,.15);}
+  .raildot.flank{outline:2px solid #fff;box-shadow:0 0 0 3px rgba(194,112,61,.35),0 1px 3px rgba(0,0,0,.2);}
+  .railmark{position:absolute;top:0;height:32px;border-left:2px solid var(--accent);transform:translateX(-1px);z-index:3;}
+  .railmark::after{content:"";position:absolute;bottom:-4px;left:-4px;border:4px solid transparent;border-top-color:var(--accent);}
+  .raillbl{position:absolute;font-size:10.5px;font-weight:700;white-space:nowrap;transform:translateX(-50%);}
+  .raillbl.hi{top:0;color:#6b7280;} .raillbl.lo{top:0;color:#6b7280;}
+  .railends{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:3px;}
+
+  /* v5 histogram */
+  .v-hist{padding-top:4px;}
+  .histrow{display:flex;align-items:flex-end;gap:3px;height:60px;}
+  .histbar{flex:1;background:var(--line);border-radius:3px 3px 0 0;position:relative;min-height:3px;transition:background .1s;}
+  .histbar.hot{background:var(--tint);}
+  .histbar .cnt{position:absolute;top:-15px;left:0;right:0;text-align:center;font-size:10px;font-weight:700;color:var(--muted);}
+  .histaxis{display:flex;gap:3px;margin-top:3px;}
+  .histaxis span{flex:1;text-align:center;font-size:9.5px;color:var(--muted);}
+  .histcap{font-size:12px;color:var(--muted);text-align:center;margin-top:8px;}
+  .histcap b{color:var(--ink);}
+
+  /* v6 tiers */
+  .v-tiers{padding-top:2px;}
+  .tierbar{display:flex;gap:2px;height:34px;}
+  .tierseg{flex:1;border-radius:4px;position:relative;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:.9;}
+  .tierseg.on{outline:2.5px solid #111;outline-offset:1px;z-index:2;opacity:1;}
+  .tierseg .zero{opacity:.35;}
+  .tiercap{text-align:center;margin-top:12px;font-size:14px;font-weight:700;}
+  .tiercap small{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:2px;}
+
+  /* v7 ghost cards */
+  .v-ghost{display:flex;flex-direction:column;gap:8px;}
+  .gcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;}
+  .gcard.dim{opacity:.5;}
+  .gcard.you{border:2px solid var(--accent);box-shadow:0 4px 16px rgba(194,112,61,.22);}
+  .gcard .ph{position:relative;height:74px;display:flex;align-items:center;justify-content:center;font-size:30px;}
+  .gcard .ph .pill{position:absolute;top:7px;right:8px;background:rgba(255,255,255,.94);border-radius:20px;padding:2px 9px;font-size:13px;font-weight:800;}
+  .gcard .bd{padding:7px 11px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .gcard .bd .nm{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gcard .bd .rk{font-size:11.5px;color:var(--muted);flex:none;}
+  .gcard.you .bd .nm{color:var(--accent);}
+  .ghint{font-size:11px;color:var(--muted);text-align:center;margin-top:2px;}
+
+  /* v8 live list */
+  .v-list{position:relative;max-height:230px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;}
+  .lrow{display:flex;align-items:center;gap:9px;padding:7px 10px;border-bottom:1px solid var(--line);}
+  .lrow:last-child{border-bottom:none;}
+  .lrow .rk{font-size:12px;font-weight:800;color:var(--muted);width:20px;text-align:center;flex:none;}
+  .lrow .nm{font-size:13.5px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lrow .sc{font-size:13.5px;font-weight:700;color:var(--muted);flex:none;}
+  .lrow.you{background:var(--tint-soft);}
+  .lrow.you .nm,.lrow.you .sc,.lrow.you .rk{color:var(--accent);font-weight:800;}
+
+  /* form tail */
+  .photo-btn{width:100%;border:1.5px dashed var(--line);border-radius:12px;background:#fafaf9;color:var(--muted);padding:14px;font-size:15px;cursor:pointer;text-align:center;}
+  .photo-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .tray{margin:22px auto 0;max-width:520px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+  .tray h2{font-size:14px;margin:0 0 2px;}
+  .tray .sub{font-size:12px;color:var(--muted);margin:0 0 14px;}
+  .seg{display:flex;flex-wrap:wrap;gap:6px;}
+  .seg button{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink);}
+  .seg button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .seg button .tier{font-size:10px;opacity:.7;margin-left:4px;}
+  .opt-desc{font-size:12.5px;color:var(--muted);margin-top:13px;line-height:1.5;}
+  .opt-desc .src{display:inline-block;font-size:10.5px;font-weight:700;color:var(--accent);background:var(--tint-soft);border-radius:6px;padding:1px 7px;margin-right:6px;vertical-align:middle;}
+  .toggle-row{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:14px;flex-wrap:wrap;}
+  .toggle-row .spacer{flex:1;}
+  .toggle-row a{font-size:12px;color:var(--accent);text-decoration:none;}
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:22px;}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="pagehead">
+    <h1>Add-entry · comparative context</h1>
+    <a href="add-entry-finalize.html">← finalists</a>
+  </div>
+  <p class="intro">
+    All eight keep the finalist <b>0–10 word slider</b> (Option C) and the same holistic gut number — they differ only in
+    <b>what they show you about where that number lands in your own list</b> as you drag. Same sample list of croissants
+    throughout, so the treatment is the only variable. Drag the slider and watch the context under it. Nothing here changes the score;
+    it only makes placing it less of a shot in the dark.
+  </p>
+
+  <div class="phone framed" id="phone">
+    <div class="statusbar"><span>9:41</span><span class="dots">● ‹›  ▮</span></div>
+    <div class="navbar">
+      <button class="nav-btn nav-cancel" id="reset">Reset</button>
+      <div class="title">New entry</div>
+      <button class="nav-btn nav-save muted" id="save" disabled>Save</button>
+    </div>
+    <div class="screen">
+      <div class="field">
+        <div class="flabel">Place <span class="req">*</span></div>
+        <input type="text" class="tinput" id="place" value="Balthazar" autocomplete="off" />
+      </div>
+      <div class="field">
+        <div class="flabel">Chocolate croissant · rating <span class="req">*</span></div>
+        <div class="rt-slider">
+          <div class="rt-sval" id="sval">–<small> / 10</small></div>
+          <div class="rt-sword" id="sword"></div>
+          <input type="range" min="0" max="10" step="0.1" value="7.3" id="rng" />
+          <div class="rt-ends"><span>0</span><span>10</span></div>
+        </div>
+        <div class="ctx" id="ctx"></div>
+      </div>
+      <div class="field">
+        <div class="flabel">Notes</div>
+        <textarea class="tinput" placeholder="Anything worth remembering…"></textarea>
+      </div>
+      <div class="field">
+        <div class="flabel">Photo</div>
+        <button class="photo-btn">＋ Add photo</button>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+  <div class="tray">
+    <h2>Eight ways to show where it lands</h2>
+    <p class="sub">Simple → rich. Each borrows from a different app so the styles don't converge — pick the elements that feel right.</p>
+    <div class="seg" id="seg"></div>
+    <div class="opt-desc" id="desc"></div>
+    <div class="toggle-row">
+      <input type="checkbox" id="frame" checked /><label for="frame">iPhone frame</label>
+      <span class="spacer"></span>
+      <a href="#" id="denselink">Toggle dense/sparse list</a>
+    </div>
+  </div>
+
+  <div class="foot">Comparative-context treatments for the add-entry slider · mockup, nothing stored</div>
+</div>
+
+<script>
+/* ---------- shared slider vocab (from add-entry-finalize.html) ---------- */
+const SLIDER11 = ["never again","couldn't finish","pretty bad","meh","just okay","fine","pretty good","really good","excellent","incredible","best ever"];
+function sliderColor(v){ return `hsl(${Math.round((v/10)*130)} 60% 42%)`; }
+
+/* ---------- sample data ---------- */
+// A dense cluster in the 7s is where comparative context earns its keep.
+const DENSE = [
+  {name:"Der Pioneer",      score:8.8, tint:"#b5651d"},
+  {name:"L'Appartement 4F", score:8.2, tint:"#c2703d"},
+  {name:"Librae Bakery",    score:7.9, tint:"#cf8a4e"},
+  {name:"Apollo Bakery",    score:7.6, tint:"#d98c3f"},
+  {name:"Bien Cuit",        score:7.4, tint:"#c98a55"},
+  {name:"Breads Bakery",    score:7.1, tint:"#d6a15c"},
+  {name:"Maman",            score:6.5, tint:"#caa06a"},
+  {name:"Patisserie Fouet", score:5.9, tint:"#b98d63"},
+  {name:"Dominique Ansel",  score:4.3, tint:"#a98d78"},
+];
+const SPARSE = [
+  {name:"Der Pioneer",   score:8.8, tint:"#b5651d"},
+  {name:"Apollo Bakery", score:7.6, tint:"#d98c3f"},
+  {name:"Maman",         score:6.5, tint:"#caa06a"},
+  {name:"Dominique Ansel",score:4.3, tint:"#a98d78"},
+];
+let LIST = DENSE.slice();
+
+/* ---------- context math ---------- */
+function ctxFor(v){
+  const above = LIST.filter(e=>e.score> v).sort((a,b)=>a.score-b.score); // nearest above = first
+  const below = LIST.filter(e=>e.score< v).sort((a,b)=>b.score-a.score); // nearest below = first
+  const rank  = above.length + 1;          // 1 = top
+  const total = LIST.length + 1;           // including this new entry
+  return { above, below, rank, total, nAbove:above[0]||null, nBelow:below[0]||null };
+}
+const emoji = "🥐";
+function thumb(cls, e){ return `<span class="thumb ${cls}" style="background:${e.tint}">${emoji}</span>`; }
+
+/* ---------- variants ---------- */
+const VARIANTS = [
+  { id:"caption", label:"Caption", tier:"simple", src:"plain text",
+    desc:"The lightest possible: one sentence naming the entries you'd sit between. Costs one line of type and no layout." },
+  { id:"chips", label:"Neighbor chips", tier:"simple", src:"Beli",
+    desc:"The nearest entry above and below as two cards, your rating slotted between them — Beli's better/worse rendered as ambient context you read, not a prompt you answer." },
+  { id:"rank", label:"Rank + percentile", tier:"simple", src:"Strava",
+    desc:"A stat, not a picture: what number this would be out of your list, and the top-% band it falls in. Strava's '2nd-fastest of 34' framing." },
+  { id:"rail", label:"Number-line rail", tier:"middle", src:"Elo ladder",
+    desc:"Your whole list as dots on a 0–10 rail, a live marker threading between them. Turns an abstract decimal into a spot on a line you can see yourself slide into." },
+  { id:"hist", label:"Distribution", tier:"middle", src:"Letterboxd / IMDb",
+    desc:"A histogram of your own scores sits under the track; the lit bar is where this rating falls. Shows the shape of your scale — where you cluster, where there's open air." },
+  { id:"tiers", label:"Word-tier bands", tier:"middle", src:"Untappd",
+    desc:"The eleven slider words as bands, each showing how many of your entries live there. You pick a feeling ('really good') and see how crowded that shelf already is." },
+  { id:"ghost", label:"Ghost cards", tier:"rich", src:"card peek",
+    desc:"The real entry cards just above and below peek in, dimmed, with a bright preview of this entry between them — you see it as a card in the list before you save." },
+  { id:"list", label:"Live list insert", tier:"rich", src:"Beli result",
+    desc:"The full ranked list, live: your new entry drops into its slot and every rank renumbers as you drag. The richest — you watch the list reorder around you." },
+];
+let current = "caption";
+
+const ctx = document.getElementById('ctx');
+function renderCtx(v){
+  const c = ctxFor(v);
+  const R = { caption:vCaption, chips:vChips, rank:vRank, rail:vRail, hist:vHist, tiers:vTiers, ghost:vGhost, list:vList }[current];
+  ctx.innerHTML = R(v, c);
+}
+
+function vCaption(v,c){
+  if(!c.nAbove && !c.nBelow) return `<div class="v-caption ctx-empty">No croissants rated yet — this one starts the list.</div>`;
+  if(!c.nAbove) return `<div class="v-caption"><span class="edge">Your new #1</span> — nothing rated higher.<br><span class="sc">Just above ${c.nBelow.name} (${c.nBelow.score.toFixed(1)})</span></div>`;
+  if(!c.nBelow) return `<div class="v-caption">Your lowest so far.<br><span class="sc">Just below ${c.nAbove.name} (${c.nAbove.score.toFixed(1)})</span></div>`;
+  return `<div class="v-caption">Sits just above <b>${c.nBelow.name}</b> <span class="sc">(${c.nBelow.score.toFixed(1)})</span><br>and just below <b>${c.nAbove.name}</b> <span class="sc">(${c.nAbove.score.toFixed(1)})</span></div>`;
+}
+
+function vChips(v,c){
+  const chip=(e,dim)=>`<div class="nchip ${dim?'dim':''}">${thumb('md',e)}<span class="nm">${e.name}</span><span class="sc">${e.score.toFixed(1)}</span></div>`;
+  const you=`<div class="youbar"><span class="ln"></span>your rating · ${v.toFixed(1)}<span class="ln"></span></div>`;
+  let out=`<div class="v-chips">`;
+  out += c.nAbove ? chip(c.nAbove,true) : `<div class="ctx-empty">— nothing higher —</div>`;
+  out += you;
+  out += c.nBelow ? chip(c.nBelow,true) : `<div class="ctx-empty">— nothing lower —</div>`;
+  out += `</div>`;
+  return out;
+}
+
+function vRank(v,c){
+  const pct = Math.round((c.rank/c.total)*100);
+  return `<div class="v-rank">
+    <div class="big">#${c.rank}<small> / ${c.total}</small></div>
+    <div class="meta">
+      Ahead of <b>${c.below.length}</b>, behind <b>${c.above.length}</b><br>
+      of your ${LIST.length} croissants
+      <span class="pct">top ${pct}%</span>
+    </div></div>`;
+}
+
+function vRail(v,c){
+  const pos=s=>`${(s/10)*100}%`;
+  const clamp=s=>`${Math.max(9,Math.min(91,(s/10)*100))}%`; // keep labels off the edges
+  const isFlank=e=>(c.nAbove&&e===c.nAbove)||(c.nBelow&&e===c.nBelow);
+  const dots = LIST.map(e=>`<div class="raildot ${isFlank(e)?'flank':''}" style="left:${pos(e.score)};background:${e.tint}"></div>`).join("");
+  // higher neighbor labels ABOVE the line, lower neighbor BELOW — separate rows, so they can't overlap each other
+  const top = c.nAbove ? `<div class="raillbl hi" style="left:${clamp(c.nAbove.score)}">${c.nAbove.name} · ${c.nAbove.score.toFixed(1)}</div>` : "";
+  const bot = c.nBelow ? `<div class="raillbl lo" style="left:${clamp(c.nBelow.score)}">${c.nBelow.name} · ${c.nBelow.score.toFixed(1)}</div>` : "";
+  const mark=`<div class="railmark" style="left:${pos(v)}"></div>`;
+  return `<div class="v-rail">
+    <div class="railtop">${top}</div>
+    <div class="railmid"><div class="railline"></div>${dots}${mark}</div>
+    <div class="railbot">${bot}</div>
+    <div class="railends"><span>0</span><span>5</span><span>10</span></div></div>`;
+}
+
+function vHist(v,c){
+  // bins 0-1 .. 9-10 (index by floor, 10 folds into last)
+  const bins=new Array(10).fill(0);
+  LIST.forEach(e=>{ let b=Math.min(9,Math.floor(e.score)); bins[b]++; });
+  const max=Math.max(1,...bins);
+  const hot=Math.min(9,Math.floor(v));
+  let bars=bins.map((n,i)=>`<div class="histbar ${i===hot?'hot':''}" style="height:${Math.max(3,(n/max)*100)}%">${n?`<span class="cnt">${n}</span>`:""}</div>`).join("");
+  let axis=bins.map((_,i)=>`<span>${i}</span>`).join("");
+  const here=bins[hot];
+  return `<div class="v-hist"><div class="histrow">${bars}</div><div class="histaxis">${axis}</div>
+    <div class="histcap">${here?`<b>${here}</b> already in the ${hot}–${hot+1} band`:`open air — <b>nothing</b> yet in the ${hot}–${hot+1} band`}</div></div>`;
+}
+
+function vTiers(v,c){
+  // one band per integer 0..10 (11 tiers = SLIDER11)
+  const counts=new Array(11).fill(0);
+  LIST.forEach(e=>counts[Math.round(e.score)]++);
+  const active=Math.round(v);
+  let segs="";
+  for(let i=0;i<=10;i++){
+    segs+=`<div class="tierseg ${i===active?'on':''}" style="background:${sliderColor(i)}">
+      <span class="${counts[i]?'':'zero'}">${counts[i]}</span></div>`;
+  }
+  return `<div class="v-tiers"><div class="tierbar">${segs}</div>
+    <div class="tiercap" style="color:${sliderColor(active)}">“${SLIDER11[active]}”
+    <small>${counts[active]? `${counts[active]} of your croissants already live here` : `an empty shelf — nothing here yet`}</small></div></div>`;
+}
+
+function vGhost(v,c){
+  const card=(e,cls,rank)=>`<div class="gcard ${cls}"><div class="ph" style="background:${e.tint}22">${emoji}
+      <span class="pill" style="color:${sliderColor(e.score)}">${e.score.toFixed(1)}</span></div>
+      <div class="bd"><span class="nm">${e.name}</span><span class="rk">${rank}</span></div></div>`;
+  const you={name:document.getElementById('place').value||"This entry",score:v,tint:"#c2703d"};
+  let out=`<div class="v-ghost">`;
+  if(c.nAbove) out+=card(c.nAbove,'dim',`Rank ${c.rank-1}`);
+  out+=`<div class="gcard you"><div class="ph" style="background:${sliderColor(v)}1f">${emoji}
+      <span class="pill" style="color:${sliderColor(v)}">${v.toFixed(1)}</span></div>
+      <div class="bd"><span class="nm">${you.name}</span><span class="rk">Rank ${c.rank}</span></div></div>`;
+  if(c.nBelow) out+=card(c.nBelow,'dim',`Rank ${c.rank+1}`);
+  out+=`</div><div class="ghint">↑ preview of where this lands, between its neighbors</div>`;
+  return out;
+}
+
+function vList(v,c){
+  const rows=[];
+  let r=1;
+  const youName=document.getElementById('place').value||"This entry";
+  // build merged, ranked
+  const merged=LIST.map(e=>({...e,you:false})).concat([{name:youName,score:v,you:true,tint:"#c2703d"}])
+                   .sort((a,b)=>b.score-a.score);
+  merged.forEach((e,i)=>{
+    rows.push(`<div class="lrow ${e.you?'you':''}" ${e.you?'id="yourow"':''}>
+      <span class="rk">${i+1}</span>${thumb('sm',e)}
+      <span class="nm">${e.name}${e.you?' · you':''}</span>
+      <span class="sc">${e.score.toFixed(1)}</span></div>`);
+  });
+  return `<div class="v-list" id="vlist">${rows.join("")}</div>`;
+}
+
+/* ---------- wiring ---------- */
+const rng=document.getElementById('rng'), sval=document.getElementById('sval'), sword=document.getElementById('sword');
+const saveBtn=document.getElementById('save'), place=document.getElementById('place');
+function onChange(){ const ok=place.value.trim()!=="" ; saveBtn.disabled=!ok; saveBtn.classList.toggle('muted',!ok); }
+function paint(v){
+  const col=sliderColor(v);
+  sval.innerHTML=`${v.toFixed(1)}<small> / 10</small>`; sval.style.color=col;
+  sword.textContent="“"+SLIDER11[Math.round(v)]+"”"; sword.style.color=col;
+  rng.style.accentColor=col;
+  renderCtx(v);
+  if(current==='list'){ const yr=document.getElementById('yourow'), lc=document.getElementById('vlist');
+    if(yr&&lc){ lc.scrollTop = yr.offsetTop - lc.clientHeight/2 + yr.offsetHeight/2; } }
+}
+rng.oninput=()=>paint(+rng.value);
+place.addEventListener('input',()=>{ if(current==='ghost'||current==='list') paint(+rng.value); onChange(); });
+
+/* segmented picker */
+const seg=document.getElementById('seg'), desc=document.getElementById('desc');
+VARIANTS.forEach(vr=>{
+  const b=document.createElement('button');
+  b.dataset.id=vr.id; b.innerHTML=`${vr.label}<span class="tier">${vr.tier}</span>`;
+  if(vr.id===current) b.classList.add('on');
+  b.onclick=()=>{ current=vr.id;
+    seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.id===vr.id));
+    desc.innerHTML=`<span class="src">${vr.src}</span>${vr.desc}`;
+    paint(+rng.value);
+  };
+  seg.appendChild(b);
+});
+desc.innerHTML=`<span class="src">${VARIANTS[0].src}</span>${VARIANTS[0].desc}`;
+
+/* toggles */
+document.getElementById('frame').onchange=e=>document.getElementById('phone').classList.toggle('framed',e.target.checked);
+document.getElementById('denselink').onclick=e=>{ e.preventDefault(); LIST = (LIST===DENSE)?SPARSE:DENSE; paint(+rng.value); };
+document.getElementById('reset').onclick=()=>{ rng.value="7.3"; place.value="Balthazar"; onChange(); paint(7.3); };
+saveBtn.onclick=()=>{ if(!saveBtn.disabled){ saveBtn.textContent="Saved ✓"; setTimeout(()=>saveBtn.textContent="Save",1500);} };
+
+/* init */
+onChange(); paint(7.3);
+</script>
+</body>
+</html>
