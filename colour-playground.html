@@ -161,6 +161,14 @@
     <p class="intro">Set Prospect's colour roles and see them on three real screens. The rating ramp, list tints and error red stay fixed, so you can see clashes. The palette lives in the URL, so copying the link shares it.</p>
 
     <div class="sec">
+      <h2>Inspiration <span style="text-transform:none;letter-spacing:0;font-weight:400">fills unlocked roles</span></h2>
+      <div class="row">
+        <select id="preset" style="flex:1;min-width:0"></select>
+      </div>
+      <p class="hint" id="presetNote">Starting points taken from apps that share Prospect's Sage, Explorer or Everyman character. The values are approximate, by eye, not official brand colours.</p>
+    </div>
+
+    <div class="sec">
       <h2>Harmony</h2>
       <div class="row">
         <span style="width:44px;color:var(--t-muted)">Seed</span>
@@ -274,10 +282,50 @@ const ROLES=[
   {k:'a2',       n:'Accent 2',  d:'chips, links (optional)'},
 ];
 const CURRENT={base:'#FAFAFA',surface:'#FFFFFF',ink:'#111827',muted:'#6B7280',hairline:'#E5E7EB',a1:'#111827',a2:'#4B6B3A'};
+/* ------------------------------------------------------------
+   PRESETS — app-inspired starting points, grouped by archetype.
+   Values are approximations by eye, not official brand colours.
+   To add one: copy a line, give it a unique id, and set the seven roles.
+   a2: null means "no separate accent 2" (accent 2 falls back to accent 1).
+   ------------------------------------------------------------ */
+const PRESETS=[
+  {id:'current', group:'Prospect', name:'Prospect today', note:'The app as it ships now: neutral greys, near-black accent.',
+   base:'#FAFAFA',surface:'#FFFFFF',ink:'#111827',muted:'#6B7280',hairline:'#E5E7EB',a1:'#111827',a2:null},
+
+  // Sage: calm, bookish, quietly expert
+  {id:'goodreads', group:'Sage', name:'Goodreads-ish (cream + brown + green)', note:'A rating app. Cream canvas, coffee-brown ink, green action, teal links.',
+   base:'#F4F1EA',surface:'#FFFFFF',ink:'#382110',muted:'#6F6558',hairline:'#DDD6C8',a1:'#3F8F5F',a2:'#00635D'},
+  {id:'notion', group:'Sage', name:'Notion-ish (warm paper, quiet blue)', note:'Warm off-white surfaces, soft brown-black ink, one blue accent, green as a second.',
+   base:'#FFFFFF',surface:'#F7F6F3',ink:'#37352F',muted:'#787774',hairline:'#E9E9E7',a1:'#2383E2',a2:'#448361'},
+  {id:'medium', group:'Sage', name:'Medium-ish (white + editorial green)', note:'Almost all type: white, near-black ink, a single green.',
+   base:'#FFFFFF',surface:'#FFFFFF',ink:'#242424',muted:'#6B6B6B',hairline:'#ECECEC',a1:'#1A8917',a2:null},
+  {id:'letterboxd', group:'Sage', name:'Letterboxd-ish (dark slate, green + orange)', note:'A rating app, dark. Blue-slate canvas, green and orange accents. Watch the ramp contrast.',
+   base:'#14181C',surface:'#2C3440',ink:'#E1E6EB',muted:'#99AABB',hairline:'#445566',a1:'#00C030',a2:'#FF8000'},
+
+  // Explorer: outdoors, maps, field guides
+  {id:'alltrails', group:'Explorer', name:'AllTrails-ish (forest + trail green)', note:'Deep forest ink, clean white, a confident trail green.',
+   base:'#F7F8F4',surface:'#FFFFFF',ink:'#1C2B1F',muted:'#5E6B5F',hairline:'#DDE3D8',a1:'#2F5D2A',a2:'#7FA33A'},
+  {id:'komoot', group:'Explorer', name:'Komoot-ish (charcoal + leaf green)', note:'Charcoal type on white, bright leaf green as the one accent.',
+   base:'#F5F5F2',surface:'#FFFFFF',ink:'#1E2629',muted:'#5F6A6E',hairline:'#E0E3DE',a1:'#4F850D',a2:null},
+  {id:'strava', group:'Explorer', name:'Strava-ish (white + signal orange)', note:'Plain white with one loud orange. Shows how a hot accent sits next to the ramp.',
+   base:'#F7F7FA',surface:'#FFFFFF',ink:'#242428',muted:'#6D6D78',hairline:'#DFDFE8',a1:'#FC4C02',a2:null},
+  {id:'nps', group:'Explorer', name:'National Parks-ish (parchment, brown, pine)', note:'Parchment canvas, arrowhead brown, pine green. The most "field guide" of the set.',
+   base:'#F3EEE3',surface:'#FBF8F2',ink:'#2B2620',muted:'#6B6257',hairline:'#DCD3C3',a1:'#5A4632',a2:'#3F5F3A'},
+
+  // Everyman: friendly, plain, unpretentious
+  {id:'mailchimp', group:'Everyman', name:'Mailchimp-ish (oat + yellow + peppercorn)', note:'Oat canvas, peppercorn ink, a cheerful yellow button, teal links.',
+   base:'#EFEEEA',surface:'#FFFFFF',ink:'#241C15',muted:'#6E6A64',hairline:'#DCD9D3',a1:'#FFE01B',a2:'#007C89'},
+  {id:'splitwise', group:'Everyman', name:'Splitwise-ish (mint + orange)', note:'Soft grey, friendly mint for actions, orange for the second job.',
+   base:'#F6F6F6',surface:'#FFFFFF',ink:'#333333',muted:'#6F6F6F',hairline:'#E3E3E3',a1:'#1CC29F',a2:'#FF652F'},
+  {id:'yelp', group:'Everyman', name:'Yelp-ish (white + review red)', note:'A food rating app. Its red accent sits right on the ramp’s low end: a clash to look at.',
+   base:'#FFFFFF',surface:'#FFFFFF',ink:'#2D2E2F',muted:'#6E7072',hairline:'#EBEBEB',a1:'#D32323',a2:'#027A97'},
+  {id:'untappd', group:'Everyman', name:'Untappd-ish (white + amber)', note:'A rating app. White and grey with a warm amber/gold accent.',
+   base:'#F5F5F5',surface:'#FFFFFF',ink:'#333333',muted:'#707070',hairline:'#E0E0E0',a1:'#FFC000',a2:'#8C5A00'},
+];
 const S={
   roles:{...CURRENT}, a2on:false, locks:{},
   seed:'#7A8B4F', scheme:'analogous', dir:'white', earthy:true,
-  homeEmpty:false, rating:7.5, facets:{Taste:4,Texture:5,'Worth it':null},
+  preset:'', homeEmpty:false, rating:7.5, facets:{Taste:4,Texture:5,'Worth it':null},
 };
 
 /* ============================================================
@@ -350,6 +398,7 @@ function writeHash(){
   for(const r of ROLES) p.set(r.k,S.roles[r.k].slice(1));
   p.set('a2on',S.a2on?1:0);
   const lk=Object.keys(S.locks).filter(k=>S.locks[k]); if(lk.length) p.set('lock',lk.join(','));
+  if(S.preset) p.set('preset',S.preset);
   p.set('seed',S.seed.slice(1)); p.set('scheme',S.scheme); p.set('dir',S.dir); p.set('earthy',S.earthy?1:0);
   history.replaceState(null,'','#'+p.toString());
 }
@@ -360,6 +409,7 @@ function readHash(){
   if(p.has('a2on')) S.a2on=p.get('a2on')==='1';
   S.locks={}; if(p.get('lock')) p.get('lock').split(',').forEach(k=>S.locks[k]=true);
   if(p.get('seed')&&hexToRgb(p.get('seed'))) S.seed='#'+p.get('seed').toUpperCase();
+  S.preset=PRESETS.some(x=>x.id===p.get('preset'))?p.get('preset'):'';
   if(OFFSETS[p.get('scheme')]) S.scheme=p.get('scheme');
   if(DIR_HINT[p.get('dir')]) S.dir=p.get('dir');
   if(p.has('earthy')) S.earthy=p.get('earthy')==='1';
@@ -580,7 +630,7 @@ function syncHarmonyControls(){
 }
 function render(full=true){
   if(full) rolesPanel(); else ROLES.forEach(r=>syncRoleRow(r.k));
-  applyVars(); contrastPanel(); syncHarmonyControls(); writeHash();
+  applyVars(); contrastPanel(); syncHarmonyControls(); if(typeof syncPreset==='function') syncPreset(); writeHash();
 }
 
 /* ============================================================
@@ -613,7 +663,29 @@ document.getElementById('earthy').addEventListener('change',e=>{S.earthy=e.targe
 document.getElementById('dirSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; S.dir=b.dataset.v; if(S.dir!=='white'&&!S.locks.a2) S.a2on=true; generate(false);});
 document.getElementById('genBtn').addEventListener('click',()=>generate(false));
 document.getElementById('rerollBtn').addEventListener('click',()=>generate(true));
-document.getElementById('resetBtn').addEventListener('click',()=>{S.roles={...CURRENT};S.a2on=false;S.locks={};render();});
+document.getElementById('resetBtn').addEventListener('click',()=>{S.roles={...CURRENT};S.a2on=false;S.locks={};S.preset='';render();});
+
+/* presets */
+const presetSel=document.getElementById('preset');
+presetSel.innerHTML='<option value="">Pick a starting palette…</option>'+
+  [...new Set(PRESETS.map(p=>p.group))].map(g=>`<optgroup label="${g}">${
+    PRESETS.filter(p=>p.group===g).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</optgroup>`).join('');
+const PRESET_DEFAULT_NOTE=document.getElementById('presetNote').textContent;
+function syncPreset(){
+  const p=PRESETS.find(x=>x.id===S.preset);
+  presetSel.value=p?p.id:'';
+  document.getElementById('presetNote').textContent=p?p.note+' Values are approximate.':PRESET_DEFAULT_NOTE;
+}
+presetSel.addEventListener('change',()=>{
+  const p=PRESETS.find(x=>x.id===presetSel.value); S.preset=p?p.id:'';
+  if(p){
+    for(const r of ROLES){ if(S.locks[r.k]) continue;
+      if(r.k==='a2'){ if(p.a2){S.roles.a2=p.a2;} }
+      else S.roles[r.k]=p[r.k]; }
+    if(!S.locks.a2) S.a2on=!!p.a2;
+  }
+  render();
+});
 document.getElementById('copyLink').addEventListener('click',e=>{
   writeHash(); const b=e.target;
   (navigator.clipboard?navigator.clipboard.writeText(location.href):Promise.reject()).then(()=>{b.textContent='Copied ✓';},()=>{b.textContent='Copy from the address bar';}).finally(()=>setTimeout(()=>b.textContent='Copy link to this palette',1600));
