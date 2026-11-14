@@ -13,7 +13,6 @@
   html,body{margin:0;padding:0;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--t-bg);color:var(--t-ink);-webkit-font-smoothing:antialiased;}
   .layout{display:grid;grid-template-columns:360px 1fr;min-height:100vh;}
-  @media (max-width:900px){ .layout{grid-template-columns:1fr;} .panel{position:static !important;height:auto !important;} }
 
   .panel{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--t-surface);border-right:1px solid var(--t-line);padding:16px 16px 40px;font-size:13px;}
   .panel h1{font-size:17px;margin:0 0 2px;}
@@ -150,12 +149,31 @@
   .empty .h{font-size:19px;font-weight:600;}
   .empty .p{color:var(--c-muted);font-size:14px;line-height:1.4;}
   .cta{margin-top:10px;background:var(--c-a1);color:var(--c-on-a1);border-radius:12px;padding:12px 20px;font-weight:600;font-size:15px;}
+  /* ---------- small screens: controls become a bottom sheet ---------- */
+  .sheet-bar{display:none;}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    .panel{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:50;height:auto;max-height:62vh;padding-top:0;
+      border-right:none;border-top:1px solid var(--t-line);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.14);
+      transform:translateY(calc(100% - 56px));transition:transform .25s ease;overflow-y:hidden;}
+    .panel.open{transform:none;overflow-y:auto;}
+    .sheet-bar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:1;margin:0 -16px 6px;padding:0 16px;height:56px;
+      background:var(--t-surface);border:none;border-bottom:1px solid var(--t-line);width:calc(100% + 32px);font:inherit;color:var(--t-ink);cursor:pointer;text-align:left;}
+    .sheet-bar::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:36px;height:4px;border-radius:2px;background:#d1d5db;}
+    .sheet-bar .lbl{font-weight:600;font-size:14px;}
+    .sheet-bar .dots{display:flex;gap:4px;flex:1;}
+    .sheet-bar .dots span{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.15);}
+    .sheet-bar .chev{font-size:13px;color:var(--t-muted);transition:transform .25s;}
+    .panel.open .sheet-bar .chev{transform:rotate(180deg);}
+    .stage-wrap{padding:16px 16px 90px;}
+  }
 </style>
 </head>
 <body>
 <div class="layout">
   <!-- ================= CONTROL PANEL ================= -->
-  <aside class="panel">
+  <aside class="panel" id="panel">
+    <button class="sheet-bar" id="sheetBar" aria-expanded="false" aria-controls="panel"><span class="lbl">Colours</span><span class="dots" id="sheetDots"></span><span class="chev">▲</span></button>
     <a class="back" href="index.html">← Rating Playground</a>
     <h1>Colour playground</h1>
     <p class="intro">Set Prospect's colour roles and see them on three real screens. The rating ramp, list tints and error red stay fixed, so you can see clashes. The palette lives in the URL, so copying the link shares it.</p>
@@ -638,7 +656,10 @@ function syncHarmonyControls(){
   document.querySelectorAll('#dirSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.dir));
   document.getElementById('dirHint').textContent=DIR_HINT[S.dir];
 }
+function sheetDots(){ const R=S.roles;
+  document.getElementById('sheetDots').innerHTML=['base','surface','ink','muted','a1'].concat(S.a2on?['a2']:[]).map(k=>`<span style="background:${R[k]}"></span>`).join(''); }
 function render(full=true){
+  sheetDots();
   if(full) rolesPanel(); else ROLES.forEach(r=>syncRoleRow(r.k));
   applyVars(); contrastPanel(); syncHarmonyControls(); if(typeof syncPreset==='function') syncPreset(); writeHash();
 }
@@ -719,6 +740,13 @@ form.addEventListener('click',e=>{
   c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',S.facets[f]===+x.dataset.n));
 });
 window.addEventListener('hashchange',()=>{readHash();render();});
+
+/* bottom sheet (small screens) */
+const panelEl=document.getElementById('panel'), sheetBar=document.getElementById('sheetBar');
+function setSheet(open){ panelEl.classList.toggle('open',open); sheetBar.setAttribute('aria-expanded',open); if(!open) panelEl.scrollTop=0; }
+sheetBar.addEventListener('click',()=>setSheet(!panelEl.classList.contains('open')));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') setSheet(false); });
+document.querySelector('.stage-wrap').addEventListener('click',e=>{ if(!e.target.closest('.phone')) setSheet(false); });
 
 readHash(); renderScreens(); render();
 </script>
